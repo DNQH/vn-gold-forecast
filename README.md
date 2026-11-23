@@ -1,0 +1,213 @@
+# 🪙 Vietnam Gold Forecast · Dự báo giá vàng Việt Nam
+
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.50%2B-FF4B4B?logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+Dự báo giá **vàng miếng SJC** và **vàng nhẫn 9999** cho ngày mai, tuần sau, tháng sau và 3–5 tháng tới.
+Hệ thống kết hợp mô hình chuỗi thời gian, học máy và một lớp tự học từ sai số. Kết quả được kiểm định
+**walk-forward** trung thực và có trang **đối chiếu lịch sử** dùng giá thời gian thực.
+
+*Forecasting Vietnamese gold prices (SJC bars & 9999 rings) with an ensemble of statistical and ML models,
+honest walk-forward evaluation, SHAP explanations and live track-record scoring. Two UIs: a plain-language
+view for non-technical users and a professional analytics view.*
+
+> ⚠️ Công cụ nghiên cứu, **không phải khuyến nghị đầu tư**.
+
+## Hai phiên bản giao diện
+
+| 🏠 **Dễ hiểu**: cho người lớn tuổi, người không rành công nghệ | 📊 **Chuyên sâu**: cho người làm phân tích |
+|---|---|
+| <img src="docs/screenshots/family.jpg" width="420"> | <img src="docs/screenshots/pro.jpg" width="420"> |
+| Chữ to, nói bằng lời thường. Màu xanh = tăng, đỏ = giảm, xám = khó đoán. Có khoảng giá dễ hiểu, câu “những lần trước nói vậy thì đúng 8/10 lần”, chấm xanh/đỏ cho 30 lần đoán gần nhất, và lưu ý về chênh lệch mua – bán. Hiển thị tốt trên điện thoại. | Bảng dự báo từng mô hình, khoảng tin cậy 80/90%, Historical tracking price, SHAP, kiểm định Diebold–Mariano, giai đoạn khoá, triển vọng dài hạn và biến số cần theo dõi. |
+
+<p align="center"><img src="docs/screenshots/family_mobile.jpg" width="260"><br><sub>Bản Dễ hiểu trên điện thoại</sub></p>
+
+### Nguyên tắc trung thực
+
+- **Chỉ nói “tăng/giảm” khi đã chứng minh được.** Hiện chỉ kỳ hạn *phiên kế tiếp* vượt dự báo Naive có ý nghĩa thống kê.
+  Với 1 tuần và 1 tháng, giao diện ghi **“Khó đoán”** và chỉ đưa khoảng giá.
+- **3 – 5 tháng: không dự đoán chiều.** Phần mềm công bố khoảng giá đối xứng, hiệu chỉnh từ sai số lịch sử,
+  kèm độ phủ thực tế đã kiểm định.
+- **Xác suất được kiểm chứng.** Câu “những lần trước nói vậy thì đúng X/10 lần” được tính từ backtest walk-forward.
+
+## Bắt đầu nhanh
+
+```bash
+git clone <địa chỉ repo của bạn> && cd vn-gold-forecast
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+streamlit run app/dashboard.py          # mở giao diện, dùng sẵn dữ liệu trong data/processed
+python scripts/run_pipeline.py          # cập nhật dữ liệu + backtest + dự báo (~15 phút lần đầu)
+python scripts/run_pipeline.py --fast   # bản chạy hằng ngày: bỏ LSTM/ablation/EDA (~10 phút)
+python -m pytest tests -q               # kiểm tra chống rò rỉ dữ liệu
+```
+
+### Đưa lên web để cả nhà xem bằng điện thoại
+
+1. Đưa repo lên GitHub.
+2. Vào [share.streamlit.io](https://share.streamlit.io), đăng nhập bằng GitHub, chọn **New app**, chọn repo và
+   file chính `app/dashboard.py`.
+3. Streamlit Cloud tự cài thư viện từ `app/requirements.txt` (bản rút gọn, không cần PyTorch) và cho một đường link
+   để gửi cho gia đình.
+
+Giao diện đọc dự báo từ `data/processed/`. Giá niêm yết hiện tại được lấy trực tiếp từ CafeF, tự làm mới mỗi 5 phút.
+Muốn dự báo trên web được cập nhật mỗi ngày, cần chạy pipeline rồi đẩy thư mục `data/processed/` lên repo.
+
+### Lịch chạy tự động mỗi sáng (macOS)
+
+```bash
+./scripts/install_schedule.sh           # cài lịch 7h00 sáng thứ Ba – thứ Bảy (launchd)
+./scripts/install_schedule.sh remove    # gỡ lịch
+```
+
+`scripts/daily.sh` làm các việc: thu thập dữ liệu, chấm điểm dự báo cũ, chạy lại walk-forward và lớp tự học,
+ra dự báo mới, ghi log vào `logs/` và hiện thông báo macOS. Nếu máy đang ngủ lúc 7h, lịch sẽ chạy ngay khi máy thức dậy.
+
+## Kiến trúc
+
+```
+Data Collection ─► Data Processing ─► Feature Engineering ─► ML Prediction Engine ─► forecast.json ─► Streamlit
+ (Yahoo, FRED,      (ghép nguồn, lưới    (~70 đặc trưng:       (Naive, MA, Linear,          │           ├─ Dễ hiểu
+  CafeF,            ngày làm việc,        returns, premium,     ARIMA, RF, XGBoost,          │           └─ Chuyên sâu
+  giavang.org)      chống leakage)        RSI, MACD, macro…)    LSTM) + lớp tự học           │
+                                                                                             ├─► Walk-forward, DM test
+                                                                                             ├─► SHAP
+                                                                                             └─► Triển vọng 3–5 tháng
+```
+
+| Module | File |
+|---|---|
+| Thu thập dữ liệu (kể cả giá live) | `src/vngold/data/collect.py` |
+| Xử lý dữ liệu | `src/vngold/data/process.py` |
+| Đặc trưng | `src/vngold/features.py` |
+| Mô hình | `src/vngold/models.py`, `src/vngold/lstm_worker.py` |
+| Tự học từ sai số | `src/vngold/online.py` |
+| Đối chiếu lịch sử | `src/vngold/tracking.py` |
+| Triển vọng dài hạn | `src/vngold/outlook.py` |
+| Đánh giá | `src/vngold/evaluation.py` |
+| Giải thích (SHAP) | `src/vngold/explain.py` |
+| EDA | `src/vngold/eda.py` → `reports/01_eda.md` |
+| Điều phối | `src/vngold/pipeline.py`, `scripts/run_pipeline.py` |
+| Giao diện | `app/dashboard.py` (điều hướng), `app/views/family.py`, `app/views/pro.py`, `app/ui.py` |
+
+## Triển vọng dài hạn (3 và 5 tháng)
+
+Ở kỳ hạn 7 và 30 ngày, mô hình đã không vượt Naive. Tỷ lệ giá tăng sau 3–5 tháng cũng đổi chiều mạnh giữa các năm
+(2025 gần như luôn tăng, 2026 phần lớn giảm). Vì vậy `outlook.py` **không** đưa ra xác suất tăng ở các kỳ hạn này,
+mà công bố một khoảng giá 80% đối xứng:
+
+- Lấy biến động ngày của 126 phiên gần nhất, nhân √h.
+- Nhân thêm hệ số bằng phân vị 80% của các sai số chuẩn hoá **đã đáo hạn** (cửa sổ mở rộng, không dùng thông tin tương lai).
+
+Độ phủ thực tế được báo cáo kèm theo. Với SJC, khoảng này phủ khoảng 64–67% trên toàn giai đoạn và 91–100% trong giai đoạn khoá:
+khoảng đối xứng đánh giá thấp các đợt tăng kéo dài.
+
+## Historical tracking price (tab trong bản Chuyên sâu)
+
+Tab này giúp người xem tự kiểm tra: **với cách dự báo hiện tại, quá khứ khớp đến đâu?**
+- Mỗi điểm là một dự báo lập trong quá khứ, chỉ dùng dữ liệu có đến ngày lập (walk-forward, mô hình huấn luyện lại
+  theo thời gian, lớp tự học chỉ học từ sai số đã biết). Điểm đó được đặt cạnh giá thực tế của đúng phiên đích.
+- Có 3 nguồn: **Live** (dự báo thật đã lưu lúc phát hành, ưu tiên khi trùng ngày), **Giai đoạn khoá**
+  (backtest sau khi đã chốt cấu hình) và **Backtest** (giai đoạn trước).
+- **Giá live:** dashboard lấy giá niêm yết mới nhất từ CafeF, tự làm mới mỗi 5 phút. Các dự báo đến hạn hôm nay
+  được chấm tạm bằng giá này. Điểm chính thức chốt theo giá cuối phiên ở lần chạy 7h sáng hôm sau.
+- Các chỉ số hiển thị:
+  - sai số trung bình (triệu đồng và %), so với Naive;
+  - tỷ lệ giá thật nằm trong khoảng 90%, tỷ lệ đúng chiều;
+  - mức độ gần/xa: Rất gần ≤ 0,5% · Gần ≤ 1% · Khá xa ≤ 2% · Xa, ngưỡng nới theo √kỳ hạn;
+  - bảng theo tháng, bảng chi tiết, tải CSV.
+- Hàm dùng chung: `tracking.historical_tracking()` và `tracking_summary()`. Hàm lấy giá live: `collect.fetch_live_prices()`.
+
+## Dữ liệu (5 nhóm)
+
+| Nhóm | Biến | Nguồn |
+|---|---|---|
+| 1. Vàng quốc tế | XAU/USD (GC=F), khối lượng, biến động, bạc | Yahoo Finance |
+| 2. Vĩ mô | DXY, US10Y, lãi suất thực 10Y, Fed funds, kỳ vọng lạm phát, CPI YoY, thất nghiệp | Yahoo, FRED |
+| 3. Thị trường trong nước | SJC mua/bán, nhẫn 9999, USD/VND, **Domestic Gold Premium**, spread | giavang.org, CafeF |
+| 4. Tâm lý / sự kiện | VIX, vía Thần Tài, giai đoạn chính sách (đấu thầu 2024, NHNN bán trực tiếp, NĐ 232/2025) | tự xây |
+| 5. Kỹ thuật | RSI, MACD, MA20/50, Bollinger, ATR, ROC, volatility 7/21 | tính từ giá |
+
+**Domestic Gold Premium:**  `P_World^VND = XAUUSD × USDVND × 37.5/31.1035`, `Premium = P_Vietnam − P_World^VND` (triệu VND/lượng).
+
+Lịch sử giá SJC 01/2017 → nay, ghép từ: giavang.org (2017 – 10/2024), giá SJC niêm yết tại PNJ
+(lấp khoảng trống 11/2024 – 02/2025, khớp giá SJC chính thức ở các ngày trùng), CafeF (02/2025 → nay).
+Vàng nhẫn có lịch sử từ 03/2024 (nhẫn PNJ 999.9 làm nguồn chính, nhẫn SJC 99,99 lấp ngày thiếu).
+
+### Chống rò rỉ dữ liệu (data leakage)
+- Lưới thời gian là ngày làm việc; **hàng t = thông tin có tại thời điểm phát hành dự báo**.
+- Giá thế giới: phiên Mỹ ngày d đóng cửa ~4–5h sáng d+1 giờ VN → chỉ dùng khi đã có.
+- FRED daily trễ 2 ngày; CPI trễ 47 ngày, thất nghiệp trễ 40 ngày (xấp xỉ ngày công bố, không dùng ngày quan sát).
+- Walk-forward: tại mốc s chỉ học các hàng i có i + h ≤ s (nhãn đã biết). **Không chia ngẫu nhiên.**
+- Ngày thị trường trong nước nghỉ (giá chỉ được điền tiếp) không được dùng làm nhãn.
+- `tests/test_leakage.py` kiểm tra tự động các điều kiện trên (6 test).
+
+## Mô hình
+
+Tất cả dự báo **lợi suất log** `r = ln P(t+h) − ln P(t)` rồi quy đổi `P̂ = P·e^r̂` (giá log không dừng: ADF p≈0.98; lợi suất dừng).
+
+| Model | Vai trò |
+|---|---|
+| Naive | Benchmark: giá tương lai = giá hôm nay |
+| Moving Average | Benchmark: trung bình 5 phiên |
+| Linear Regression (Ridge) | Baseline nhiều biến |
+| ARIMA(1,0,1) | Chuỗi thời gian |
+| Random Forest | Phi tuyến |
+| **XGBoost** | Mô hình chính (+ SHAP), trọng số ưu tiên dữ liệu gần (half-life 750 phiên) |
+| LSTM (PyTorch) | Chuỗi 20 phiên, học tiếp (warm-start) mỗi lần cập nhật |
+
+### Cơ chế tự học sau mỗi dự báo (`online.py`)
+Khi giá thực tế của ngày đích được công bố (sau h phiên), hệ thống so sánh với dự báo đã lập và cập nhật:
+1. **Trọng số theo kỹ năng so với Naive.** `skill = EWMSE_mô hình / EWMSE_Naive`, `w ∝ exp(−η·(skill − min))`.
+   Mô hình kém Naive hơn 5% bị loại tạm thời. Half-life và η điều chỉnh theo √h (sai số kỳ hạn dài chồng lấn nhau).
+2. **Hiệu chỉnh độ lệch có kiểm soát.** Chỉ áp dụng cho mô hình mà bản hiệu chỉnh đã chứng minh tốt hơn bản thô trên các dự báo đã đáo hạn.
+3. **Khoảng tin cậy tự nới/co.** Phân vị của 250 sai số gần nhất (ACI) nhân với hệ số `k`.
+   `k` tăng khi thực tế rơi ngoài khoảng nhiều hơn mức danh nghĩa và giảm khi ngược lại.
+4. **Huấn luyện lại** định kỳ với dữ liệu mới nhất (LSTM học tiếp từ trọng số cũ).
+5. **Nhật ký dự báo thực tế** (`data/processed/predictions_log.csv`). Mỗi lần chạy tự chấm điểm các dự báo cũ đã đáo hạn.
+   Dashboard hiển thị thành tích thực tế này.
+
+Báo cáo có bảng **ablation lớp tự học** cho từng kỳ hạn. Kết quả trung thực: phần giúp ích là *trọng số theo kỹ năng*
+(1 ngày: Theil U 0.935 → 0.914). *Hiệu chỉnh độ lệch* gần như không đóng góp. *Hệ số nới khoảng* đưa độ phủ 30 ngày từ 83% lên 88%.
+
+## Kết quả walk-forward
+
+Số liệu cập nhật tự động trong [`reports/02_model_evaluation.md`](reports/02_model_evaluation.md) sau mỗi lần chạy.
+README không chép số cứng để tránh lệch. Ảnh chụp ngày 23/11/2026 cho vàng SJC:
+
+| Kỳ hạn | Theil U Ensemble (DM p) | Đúng chiều / mốc "luôn đoán chiều phổ biến" | Bao phủ 90% | Giai đoạn khoá (12/2025→): U · đúng chiều/mốc · phủ 90% | Công bố |
+|---|---|---|---|---|---|
+| 1 ngày | **0.914** (p<0.001) | 66.1% / 55.4% (**+10.8 điểm**) | 90.2% | **0.901** · 68.4%/54.4% · 91.4% | Dự báo điểm |
+| 7 ngày | 1.011 (p=0.53) | 50.5% / 59.7% (−9.2) | 89.5% | 1.016 · 54.9%/56.7% · 89.5% | Chỉ khoảng tin cậy |
+| 30 ngày | 1.030 (p=0.63) | 59.3% / 66.3% (−7.0) | 87.7% | 1.120 · 52.7%/66.7% · 90.6% | Chỉ khoảng tin cậy |
+
+**Những phát hiện chính (trung thực):**
+- **1 ngày là kỳ hạn duy nhất có lợi thế thật.** Mô hình giảm ~9% RMSE so với Naive và đoán đúng chiều hơn mốc ~11 điểm %.
+  Kết quả giữ nguyên ở giai đoạn khoá (chưa từng dùng để chỉnh tham số). Nguồn lợi thế là **độ trễ truyền dẫn**
+  giá thế giới vào giá SJC. Nếu phát hành dự báo vào cuối ngày (chưa biết phiên Mỹ đêm đó) thì lợi thế biến mất (U ≈ 1.00).
+- **7 và 30 ngày: không mô hình nào thắng Naive.** Tỷ lệ đúng chiều còn **thấp hơn** cách "luôn đoán tăng"
+  (vàng tăng mạnh 2019–2026). Brier skill của P(tăng) âm. Vì vậy dashboard không đưa con số dự báo điểm cho các kỳ hạn này.
+  Chỉ hiển thị khoảng tin cậy quanh giá hiện tại kèm cảnh báo "không vượt Naive".
+- **Ablation đặc trưng:** nhóm *vàng thế giới* và *premium/pass-through* có giá trị rõ nhất ở 1 ngày. Nhóm vĩ mô và tỷ giá
+  không thêm thông tin ở kỳ hạn ngắn.
+- **Dự báo 1 năm** không được triển khai. Với dữ liệu hiện có, sai số sẽ lớn hơn nhiều so với Naive; nên dùng phân tích kịch bản.
+
+### Các hạn chế đã biết
+- Tham số mô hình được chọn khi đã nhìn backtest 2019–2025. Vì vậy chỉ số đáng tin nhất là **giai đoạn khoá** (sau `LOCK_DATE`)
+  và **nhật ký dự báo thực tế**.
+- GC=F là hợp đồng tương lai, không phải giá giao ngay. Đã đối chiếu với ETF GLD: không thấy bước nhảy đổi kỳ hạn có hệ thống,
+  và biến động −11.4% ngày 30/01/2026 là thật (GLD −10.8%). Vẫn còn vài ngày lệch giờ chốt giá giữa hai nguồn.
+- Lưới ngày làm việc T2–T6: biến động giá SJC cuối tuần được tính vào phiên thứ Hai.
+- Ngày thị trường trong nước nghỉ (Tết, lễ) bị loại khỏi nhãn huấn luyện và chấm điểm.
+- Vàng nhẫn dùng một nguồn nhất quán (nhẫn PNJ 999.9, CafeF) và chỉ có lịch sử từ 03/2024, nên kiểm định ngắn (~350 phiên).
+- Nhóm tâm lý/địa chính trị mới có proxy (VIX, vía Thần Tài, giai đoạn chính sách).
+
+## Lộ trình
+
+- [x] **Phase 1** – Thu thập dữ liệu, EDA, dataset hoàn chỉnh
+- [x] **Phase 2** – Prediction Engine (Linear, ARIMA, RF, XGBoost, LSTM), walk-forward, tự học từ sai số
+- [~] **Phase 3** – SHAP ✅; chỉ số địa chính trị GPR, NLP/FinBERT sentiment, Google Trends, GDELT ⏳
+- [~] **Phase 4** – Dashboard Streamlit ✅, lịch chạy tự động ✅; PostgreSQL, cache walk-forward cho bản chạy hằng ngày ⏳
+- [ ] Hướng B – Quantitative Trading: chiến lược mua/bán, backtest lợi nhuận (tính cả spread mua-bán ~1–2%), quản trị rủi ro

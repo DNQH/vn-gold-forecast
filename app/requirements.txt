@@ -1,0 +1,7 @@
+# Thư viện tối thiểu để CHẠY GIAO DIỆN (vd. khi đưa lên Streamlit Community Cloud).
+# Toàn bộ pipeline huấn luyện mô hình dùng requirements.txt ở thư mục gốc.
+streamlit>=1.50
+pandas>=2.2
+numpy>=1.26
+plotly>=5.20
+requests>=2.31
