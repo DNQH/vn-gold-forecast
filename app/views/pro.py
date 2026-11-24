@@ -348,7 +348,9 @@ with tabs[3]:
     st.caption("TheilU < 1: tốt hơn Naive (giá ngày mai = giá hôm nay). DM_p < 0.05: khác biệt có ý nghĩa thống kê. "
                "DirBase_% = tỷ lệ đúng nếu luôn đoán chiều phổ biến (vd luôn đoán tăng); DirEdge_pp = phần hơn mốc đó; "
                "Dir_p = kiểm định nhị thức. Ensemble = tổ hợp tự học: trọng số theo kỹ năng so với Naive "
-               "+ hiệu chỉnh độ lệch (chỉ khi có ích) + khoảng tin cậy tự nới/co.")
+               "+ hiệu chỉnh độ lệch (chỉ khi có ích) + khoảng tin cậy tự nới/co. "
+               "ECM = mô hình hiệu chỉnh sai số theo giá thế giới (thành viên ensemble từ 24/11/2026; "
+               "chênh lệch so với ensemble trước đó chưa có ý nghĩa thống kê).")
     lk = bt.get("locked")
     if lk:
         st.subheader(f"Giai đoạn khoá (sau {pd.Timestamp(lk['from']):%d/%m/%Y})")

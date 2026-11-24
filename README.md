@@ -177,6 +177,13 @@ Tất cả dự báo **lợi suất log** `r = ln P(t+h) − ln P(t)` rồi quy 
 | Random Forest | Phi tuyến |
 | **XGBoost** | Mô hình chính (+ SHAP), trọng số ưu tiên dữ liệu gần (half-life 750 phiên) |
 | LSTM (PyTorch) | Chuỗi 20 phiên, học tiếp (warm-start) mỗi lần cập nhật |
+| ECM | Mô hình hiệu chỉnh sai số theo giá thế giới (premium trong nước so với giá quốc tế quy đổi), bật từ 24/11/2026 |
+
+> **Ghi chú về ECM (bật từ 24/11/2026).** ECM (mô hình hiệu chỉnh sai số theo giá thế giới) là thành viên của ensemble tự học.
+> Trên giai đoạn khoá, ensemble có ECM giảm RMSE khoảng 1–2% (SJC 2.00 → 1.96, nhẫn 2.13 → 2.11 triệu/lượng),
+> nhưng khác biệt so với ensemble trước đó **không có ý nghĩa thống kê** (DM p = 0.27 / 0.74).
+> Sẽ đánh giá lại sau 3–6 tháng dữ liệu chạy thật. Tắt bằng biến môi trường `VNGOLD_USE_ECM=0`.
+> Chi tiết: [`reports/03_accuracy_experiments.md`](reports/03_accuracy_experiments.md).
 
 ### Cơ chế tự học sau mỗi dự báo (`online.py`)
 Khi giá thực tế của ngày đích được công bố (sau h phiên), hệ thống so sánh với dự báo đã lập và cập nhật:

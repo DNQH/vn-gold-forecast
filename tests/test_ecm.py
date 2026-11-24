@@ -95,16 +95,16 @@ def test_hourly_feature_uses_only_bars_closed_before_issue(tmp_path):
     assert np.isclose(x2.iloc[0], np.log(150 / 100))
 
 
-def test_ecm_flag_default_off_and_pipeline_smoke():
-    """Cờ USE_ECM mặc định TẮT (production không đổi); khi bật, ECM chạy trọn backtest + dự báo cuối."""
+def test_ecm_flag_default_on_and_pipeline_smoke():
+    """Cờ USE_ECM mặc định BẬT (từ 24/11/2026, tắt bằng VNGOLD_USE_ECM=0); use_ecm=False tắt hẳn; khi bật, ECM chạy trọn backtest + dự báo cuối."""
     from vngold import config
     from vngold.pipeline import _prepare, backtest, build_models, final_forecast
-    assert config.USE_ECM is False
+    assert config.USE_ECM is True
     if not DATA.exists():
         pytest.skip("chưa có dataset")
     df = pd.read_csv(DATA, index_col=0, parse_dates=True)
     ds, start = _prepare(df, "ring_sell")
-    off = [m.name for m in build_models("ring_sell", 1, False, df, ds)]
+    off = [m.name for m in build_models("ring_sell", 1, False, df, ds, use_ecm=False)]
     assert off == ["Naive", "LinearRegression", "XGBoost"]
     on = build_models("ring_sell", 1, False, df, ds, use_ecm=True)
     assert [m.name for m in on][-1] == "ECM"
