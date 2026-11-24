@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T08:15:48",
+  "generated_at": "2026-11-24T10:13:06",
   "as_of": "2026-11-23",
   "targets": {
     "sjc_sell": {
@@ -10,21 +10,22 @@
           "label": "1 ngày",
           "target_date": "2026-11-24",
           "has_edge": true,
-          "model_return_pct": 0.48734772926507625,
-          "pred_return_pct": 0.48734772926507625,
-          "pred_price": 135.6595252197463,
-          "lo90": 133.63688060618884,
-          "hi90": 137.85834536649472,
-          "lo80": 134.20319134691366,
-          "hi80": 137.2488704558522,
-          "p_up": 0.736,
-          "p_down": 0.264,
+          "model_return_pct": 0.541446103492737,
+          "pred_return_pct": 0.541446103492737,
+          "pred_price": 135.73293467224497,
+          "lo90": 133.67359155572396,
+          "hi90": 137.90356147838028,
+          "lo80": 134.27584208514025,
+          "hi80": 137.2862189249703,
+          "p_up": 0.764,
+          "p_down": 0.236,
           "weights": {
-            "Naive": 0.030072131701552835,
-            "LinearRegression": 0.19335565830200221,
-            "ARIMA": 0.03867149473795074,
-            "RandomForest": 0.41415349094864495,
-            "XGBoost": 0.3237472243098493
+            "Naive": 0.02396312337257316,
+            "LinearRegression": 0.15439793970735102,
+            "ARIMA": 0.030815567336700506,
+            "RandomForest": 0.3300202093179778,
+            "XGBoost": 0.2579795391513411,
+            "ECM": 0.20282362111405636
           },
           "models": {
             "Naive": {
@@ -38,9 +39,9 @@
               "corrected_price": 135.69713581676805
             },
             "LinearRegression": {
-              "return_pct": 0.5897092721343632,
-              "price": 135.7984594983148,
-              "corrected_price": 135.7984594983148
+              "return_pct": 0.4608315461752886,
+              "price": 135.62355826040343,
+              "corrected_price": 135.62355826040343
             },
             "ARIMA": {
               "return_pct": 0.212990171674384,
@@ -48,71 +49,76 @@
               "corrected_price": 135.12704728354257
             },
             "RandomForest": {
-              "return_pct": 0.4565505009785478,
-              "price": 135.6177522788561,
-              "corrected_price": 135.6177522788561
+              "return_pct": 0.42715119711384597,
+              "price": 135.57788746404532,
+              "corrected_price": 135.57788746404532
             },
             "XGBoost": {
-              "return_pct": 0.5662983749061823,
-              "price": 135.76667158158762,
-              "corrected_price": 135.76667158158762
+              "return_pct": 0.40616043843328953,
+              "price": 135.54943162351643,
+              "corrected_price": 135.54943162351643
+            },
+            "ECM": {
+              "return_pct": 1.1035411985214412,
+              "price": 136.4980311107128,
+              "corrected_price": 136.4980311107128
             }
           },
           "shap_top": [
             {
               "feature": "xau_ret_1d",
               "label": "XAU/USD thay đổi phiên gần nhất",
-              "value": 0.03891541730996195,
-              "contribution_pct": 0.3473471999168396,
+              "value": 0.034363263991235016,
+              "contribution_pct": 0.345519095659256,
               "direction": "Tích cực (đẩy giá lên)"
+            },
+            {
+              "feature": "premium_chg_5d",
+              "label": "Premium thay đổi 5 phiên",
+              "value": 0.03823976289887154,
+              "contribution_pct": -0.10747218132019043,
+              "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
               "feature": "xau_macd_hist",
               "label": "MACD histogram vàng thế giới",
-              "value": -0.00956868968879414,
-              "contribution_pct": 0.06952808797359467,
+              "value": -0.009903517136202033,
+              "contribution_pct": 0.06444542855024338,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "dom_macd_hist",
               "label": "MACD histogram giá trong nước",
               "value": -0.0037219996669703415,
-              "contribution_pct": 0.05676409602165222,
+              "contribution_pct": 0.049000777304172516,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "usdvnd_ret_5d",
               "label": "USD/VND thay đổi 5 phiên",
               "value": 0.0027964441263286233,
-              "contribution_pct": 0.04483857378363609,
+              "contribution_pct": 0.045498982071876526,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "passthrough_gap_1d",
               "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
-              "value": 0.03444678993018169,
-              "contribution_pct": 0.03445827215909958,
+              "value": 0.02989463661145475,
+              "contribution_pct": 0.03144689276814461,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "premium_chg_1d",
               "label": "Premium thay đổi 1 phiên",
-              "value": -0.04164406161177503,
-              "contribution_pct": 0.028147269040346146,
+              "value": -0.036222697580276186,
+              "contribution_pct": 0.028108874335885048,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
-              "feature": "xau_ret_63d",
-              "label": "XAU/USD thay đổi 3 tháng",
-              "value": -0.2503229043893995,
-              "contribution_pct": -0.027129340916872025,
-              "direction": "Tiêu cực (kéo giá xuống)"
-            },
-            {
-              "feature": "xau_ret_2d",
-              "label": "XAU/USD thay đổi 2 phiên",
-              "value": -0.008337495320141386,
-              "contribution_pct": -0.02280142717063427,
+              "feature": "passthrough_gap_5d",
+              "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (5 phiên)",
+              "value": -0.032560161790576636,
+              "contribution_pct": -0.027045989409089085,
               "direction": "Tiêu cực (kéo giá xuống)"
             }
           ],
@@ -120,77 +126,77 @@
             {
               "feature": "xau_ret_1d",
               "label": "XAU/USD thay đổi phiên gần nhất",
-              "mean_abs_shap": 0.15611380338668823
+              "mean_abs_shap": 0.15526044368743896
             },
             {
               "feature": "xau_ret_2d",
               "label": "XAU/USD thay đổi 2 phiên",
-              "mean_abs_shap": 0.055932383984327316
+              "mean_abs_shap": 0.0572449192404747
             },
             {
               "feature": "passthrough_gap_1d",
               "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
-              "mean_abs_shap": 0.04374878108501434
-            },
-            {
-              "feature": "gold_silver_ratio",
-              "label": "Tỷ lệ vàng/bạc",
-              "mean_abs_shap": 0.03724237158894539
+              "mean_abs_shap": 0.04460978880524635
             },
             {
               "feature": "premium_chg_1d",
               "label": "Premium thay đổi 1 phiên",
-              "mean_abs_shap": 0.036651384085416794
+              "mean_abs_shap": 0.036623045802116394
+            },
+            {
+              "feature": "gold_silver_ratio",
+              "label": "Tỷ lệ vàng/bạc",
+              "mean_abs_shap": 0.035670384764671326
             },
             {
               "feature": "policy_regime_3",
               "label": "Giai đoạn Nghị định 232/2025",
-              "mean_abs_shap": 0.02080451138317585
-            },
-            {
-              "feature": "premium_chg_5d",
-              "label": "Premium thay đổi 5 phiên",
-              "mean_abs_shap": 0.020668741315603256
+              "mean_abs_shap": 0.02079114504158497
             },
             {
               "feature": "silver_ret_5d",
               "label": "Giá bạc thay đổi 5 phiên",
-              "mean_abs_shap": 0.02033628150820732
+              "mean_abs_shap": 0.02032807655632496
+            },
+            {
+              "feature": "premium_chg_5d",
+              "label": "Premium thay đổi 5 phiên",
+              "mean_abs_shap": 0.02017049863934517
             },
             {
               "feature": "ret_lag2",
               "label": "Giá trong nước thay đổi 2 phiên trước",
-              "mean_abs_shap": 0.01811714842915535
+              "mean_abs_shap": 0.01793425716459751
             },
             {
               "feature": "xau_macd_hist",
               "label": "MACD histogram vàng thế giới",
-              "mean_abs_shap": 0.01683303713798523
+              "mean_abs_shap": 0.016603901982307434
             },
             {
               "feature": "dom_ma20_50",
               "label": "MA20 so với MA50 (giá trong nước)",
-              "mean_abs_shap": 0.013603635132312775
-            },
-            {
-              "feature": "xau_ret_63d",
-              "label": "XAU/USD thay đổi 3 tháng",
-              "mean_abs_shap": 0.012722444720566273
+              "mean_abs_shap": 0.013217436149716377
             },
             {
               "feature": "usdvnd_ret_5d",
               "label": "USD/VND thay đổi 5 phiên",
-              "mean_abs_shap": 0.012616941705346107
+              "mean_abs_shap": 0.012945417314767838
+            },
+            {
+              "feature": "xau_ret_63d",
+              "label": "XAU/USD thay đổi 3 tháng",
+              "mean_abs_shap": 0.012051636353135109
             },
             {
               "feature": "dom_bb_width",
               "label": "Độ rộng dải Bollinger (giá trong nước)",
-              "mean_abs_shap": 0.01126172672957182
+              "mean_abs_shap": 0.011587176471948624
             },
             {
-              "feature": "dom_macd_hist",
-              "label": "MACD histogram giá trong nước",
-              "mean_abs_shap": 0.010879444889724255
+              "feature": "ret_21d",
+              "label": "Giá SJC thay đổi 1 tháng",
+              "mean_abs_shap": 0.010953479446470737
             }
           ],
           "backtest": {
@@ -234,7 +240,7 @@
                 "Dir_p": 0.0,
                 "TheilU": 0.9207,
                 "N": 1823,
-                "DM_stat": -2.1498,
+                "DM_stat": -2.15,
                 "DM_p": 0.0317
               },
               {
@@ -280,48 +286,62 @@
                 "DM_p": 0.0
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 0.449,
-                "RMSE": 0.9717,
-                "MAPE_%": 0.4763,
-                "DirAcc_%": 66.0182,
+                "model": "ECM",
+                "MAE": 0.447,
+                "RMSE": 0.9266,
+                "MAPE_%": 0.4803,
+                "DirAcc_%": 66.3424,
                 "DirBase_%": 55.3826,
-                "DirEdge_pp": 10.6355,
+                "DirEdge_pp": 10.9598,
                 "Dir_p": 0.0,
-                "TheilU": 0.9386,
+                "TheilU": 0.895,
                 "N": 1823,
-                "DM_stat": -4.0111,
-                "DM_p": 0.0001
+                "DM_stat": -2.6408,
+                "DM_p": 0.0083
               },
               {
-                "model": "Ensemble",
-                "MAE": 0.4393,
-                "RMSE": 0.948,
-                "MAPE_%": 0.4681,
+                "model": "Ensemble_raw",
+                "MAE": 0.4449,
+                "RMSE": 0.9597,
+                "MAPE_%": 0.4724,
                 "DirAcc_%": 65.8885,
                 "DirBase_%": 55.3826,
                 "DirEdge_pp": 10.5058,
                 "Dir_p": 0.0,
-                "TheilU": 0.9157,
+                "TheilU": 0.927,
                 "N": 1823,
-                "DM_stat": -3.6563,
-                "DM_p": 0.0003
+                "DM_stat": -3.7124,
+                "DM_p": 0.0002
+              },
+              {
+                "model": "Ensemble",
+                "MAE": 0.4381,
+                "RMSE": 0.9374,
+                "MAPE_%": 0.4668,
+                "DirAcc_%": 66.2776,
+                "DirBase_%": 55.3826,
+                "DirEdge_pp": 10.8949,
+                "Dir_p": 0.0,
+                "TheilU": 0.9054,
+                "N": 1823,
+                "DM_stat": -3.2591,
+                "DM_p": 0.0011
               }
             ],
-            "coverage90": 0.9012827663134412,
-            "coverage80": 0.7992191857222533,
-            "best_model": "RandomForest",
-            "ensemble_theilU": 0.9156831056136089,
-            "ensemble_diracc": 65.88845654993514,
+            "coverage90": 0.9007250418293363,
+            "coverage80": 0.7981037367540436,
+            "best_model": "ECM",
+            "ensemble_theilU": 0.9054114325964769,
+            "ensemble_diracc": 66.2775616083009,
             "dir_base": 55.382619974059665,
-            "dir_edge_pp": 10.505836575875483,
-            "ensemble_dm_p": 0.00026313709080327005,
-            "brier_skill": 0.12176767437086422,
+            "dir_edge_pp": 10.89494163424124,
+            "ensemble_dm_p": 0.0011380608448676975,
+            "brier_skill": 0.12458095831504312,
             "locked": {
               "from": "2025-11-30",
-              "ensemble_theilU": 0.9035800938682967,
-              "ensemble_dm_p": 0.007890221773362358,
-              "ensemble_diracc": 68.11594202898551,
+              "ensemble_theilU": 0.8874840740098471,
+              "ensemble_dm_p": 0.015598017560430204,
+              "ensemble_diracc": 67.6328502415459,
               "dir_base": 54.106280193236714,
               "coverage90": 0.9098360655737705,
               "n": 244
@@ -333,18 +353,19 @@
           "label": "7 ngày",
           "target_date": "2026-11-30",
           "has_edge": false,
-          "model_return_pct": -0.4624003661613408,
+          "model_return_pct": -0.18850299811300755,
           "pred_return_pct": 0.0,
           "pred_price": 135.0,
-          "lo90": 127.89319978053192,
-          "hi90": 140.61009991256046,
-          "lo80": 131.30329956806438,
-          "hi80": 138.67419322134177,
+          "lo90": 128.6222656743808,
+          "hi90": 140.28569242077546,
+          "lo80": 131.54837487350738,
+          "hi80": 138.33975141101286,
           "p_up": 0.408,
           "p_down": 0.592,
           "weights": {
-            "Naive": 0.5801698393496746,
-            "RandomForest": 0.4198301606503254
+            "Naive": 0.37171555936226364,
+            "RandomForest": 0.2689857217986598,
+            "ECM": 0.35929871883907655
           },
           "models": {
             "Naive": {
@@ -358,9 +379,9 @@
               "corrected_price": 135.31853450865012
             },
             "LinearRegression": {
-              "return_pct": -1.2006190080981531,
-              "price": 133.3888555459872,
-              "corrected_price": 133.3888555459872
+              "return_pct": -1.1107404296951806,
+              "price": 133.50879744606303,
+              "corrected_price": 133.50879744606303
             },
             "ARIMA": {
               "return_pct": 0.5233744766249976,
@@ -368,21 +389,26 @@
               "corrected_price": 134.83198228404552
             },
             "RandomForest": {
-              "return_pct": -0.17320070499054122,
-              "price": 134.76638142117721,
-              "corrected_price": 134.29392714173562
+              "return_pct": -0.3471110354087779,
+              "price": 134.53221244299672,
+              "corrected_price": 134.06057909630326
             },
             "XGBoost": {
-              "return_pct": -0.43172151781618595,
-              "price": 134.41843223083643,
-              "corrected_price": 134.41843223083643
+              "return_pct": -0.4708393942564726,
+              "price": 134.36586087767228,
+              "corrected_price": 134.36586087767228
+            },
+            "ECM": {
+              "return_pct": 0.8203923121710014,
+              "price": 136.11208511448228,
+              "corrected_price": 135.58189497833587
             }
           },
           "shap_top": [
             {
               "feature": "xau_vol21",
               "label": "Biến động vàng thế giới 21 phiên",
-              "value": 0.021320450113894506,
+              "value": 0.020876658774612533,
               "contribution_pct": -0.2840398848056793,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -403,14 +429,14 @@
             {
               "feature": "xau_ret_63d",
               "label": "XAU/USD thay đổi 3 tháng",
-              "value": -0.2503229043893995,
+              "value": -0.25487505770812646,
               "contribution_pct": -0.15654036402702332,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
               "feature": "xau_ret_1d",
               "label": "XAU/USD thay đổi phiên gần nhất",
-              "value": 0.03891541730996195,
+              "value": 0.034363263991235016,
               "contribution_pct": 0.12237978726625443,
               "direction": "Tích cực (đẩy giá lên)"
             },
@@ -424,14 +450,14 @@
             {
               "feature": "xau_ret_10d",
               "label": "XAU/USD thay đổi 10 phiên",
-              "value": -0.11844861373656457,
+              "value": -0.1230007670552915,
               "contribution_pct": 0.07606363296508789,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "xau_macd_hist",
               "label": "MACD histogram vàng thế giới",
-              "value": -0.00956868968879414,
+              "value": -0.009903517136202033,
               "contribution_pct": 0.06993129849433899,
               "direction": "Tích cực (đẩy giá lên)"
             }
@@ -600,50 +626,64 @@
                 "DM_p": 0.6369
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 1.2512,
-                "RMSE": 2.4452,
-                "MAPE_%": 1.3119,
-                "DirAcc_%": 58.2885,
+                "model": "ECM",
+                "MAE": 1.2727,
+                "RMSE": 2.4159,
+                "MAPE_%": 1.3374,
+                "DirAcc_%": 57.8695,
                 "DirBase_%": 59.6649,
-                "DirEdge_pp": -1.3764,
-                "Dir_p": 0.8793,
-                "TheilU": 1.0061,
+                "DirEdge_pp": -1.7953,
+                "Dir_p": 0.9356,
+                "TheilU": 0.994,
                 "N": 1777,
-                "DM_stat": 0.6004,
-                "DM_p": 0.5483
+                "DM_stat": -0.3709,
+                "DM_p": 0.7108
+              },
+              {
+                "model": "Ensemble_raw",
+                "MAE": 1.2459,
+                "RMSE": 2.4312,
+                "MAPE_%": 1.3043,
+                "DirAcc_%": 58.827,
+                "DirBase_%": 59.6649,
+                "DirEdge_pp": -0.8378,
+                "Dir_p": 0.7654,
+                "TheilU": 1.0003,
+                "N": 1777,
+                "DM_stat": 0.0338,
+                "DM_p": 0.973
               },
               {
                 "model": "Ensemble",
-                "MAE": 1.2534,
-                "RMSE": 2.4572,
-                "MAPE_%": 1.3131,
-                "DirAcc_%": 50.6284,
+                "MAE": 1.253,
+                "RMSE": 2.4365,
+                "MAPE_%": 1.313,
+                "DirAcc_%": 54.0993,
                 "DirBase_%": 59.6649,
-                "DirEdge_pp": -9.0365,
+                "DirEdge_pp": -5.5655,
                 "Dir_p": 1.0,
-                "TheilU": 1.011,
+                "TheilU": 1.0025,
                 "N": 1777,
-                "DM_stat": 0.624,
-                "DM_p": 0.5327
+                "DM_stat": 0.1378,
+                "DM_p": 0.8904
               }
             ],
-            "coverage90": 0.8950086058519794,
-            "coverage80": 0.8014916810097533,
-            "best_model": "Naive",
-            "ensemble_theilU": 1.0109825720990064,
-            "ensemble_diracc": 50.62836624775583,
+            "coverage90": 0.8955823293172691,
+            "coverage80": 0.802065404475043,
+            "best_model": "ECM",
+            "ensemble_theilU": 1.0024828635239575,
+            "ensemble_diracc": 54.099341711549975,
             "dir_base": 59.664871334530226,
-            "dir_edge_pp": -9.036505086774394,
-            "ensemble_dm_p": 0.5327032148313637,
-            "brier_skill": -0.06410626744490244,
+            "dir_edge_pp": -5.565529622980248,
+            "ensemble_dm_p": 0.890403951515804,
+            "brier_skill": -0.05397489937506461,
             "locked": {
               "from": "2025-11-30",
-              "ensemble_theilU": 1.0155400611663088,
-              "ensemble_dm_p": 0.5933392693659162,
-              "ensemble_diracc": 55.12820512820513,
+              "ensemble_theilU": 1.0059751730895712,
+              "ensemble_dm_p": 0.8397417490451665,
+              "ensemble_diracc": 55.98290598290598,
               "dir_base": 56.837606837606835,
-              "coverage90": 0.8958333333333334,
+              "coverage90": 0.9,
               "n": 240
             },
             "start": "2019-04-02"
@@ -653,17 +693,18 @@
           "label": "30 ngày",
           "target_date": "2026-12-22",
           "has_edge": false,
-          "model_return_pct": -1.10218714485361,
+          "model_return_pct": -1.634188887451968,
           "pred_return_pct": 0.0,
           "pred_price": 135.0,
-          "lo90": 109.00667664388679,
-          "hi90": 160.08087155074224,
-          "lo80": 120.8908313069675,
-          "hi80": 146.93207031425422,
-          "p_up": 0.444,
-          "p_down": 0.556,
+          "lo90": 109.09403775089743,
+          "hi90": 157.30340544478236,
+          "lo80": 122.10089561544453,
+          "hi80": 144.74663459073756,
+          "p_up": 0.456,
+          "p_down": 0.544,
           "weights": {
-            "Naive": 1.0
+            "Naive": 0.5332181714876204,
+            "ECM": 0.46678182851237965
           },
           "models": {
             "Naive": {
@@ -677,9 +718,9 @@
               "corrected_price": 134.46144607952414
             },
             "LinearRegression": {
-              "return_pct": -3.3208117738102914,
-              "price": 130.59052451161085,
-              "corrected_price": 130.59052451161085
+              "return_pct": -2.9690206979156226,
+              "price": 131.05073934554144,
+              "corrected_price": 131.05073934554144
             },
             "ARIMA": {
               "return_pct": 1.7958208976000751,
@@ -687,21 +728,26 @@
               "corrected_price": 134.53246098560763
             },
             "RandomForest": {
-              "return_pct": -1.3698147873157154,
-              "price": 133.16335805237222,
-              "corrected_price": 133.16335805237222
+              "return_pct": -1.4545451442344037,
+              "price": 133.05057605085315,
+              "corrected_price": 133.05057605085315
             },
             "XGBoost": {
               "return_pct": -1.947687566280365,
               "price": 132.39606238626192,
               "corrected_price": 132.39606238626192
+            },
+            "ECM": {
+              "return_pct": -1.2590290025891973,
+              "price": 133.31096587270258,
+              "corrected_price": 132.0070964601474
             }
           },
           "shap_top": [
             {
               "feature": "xau_vol21",
               "label": "Biến động vàng thế giới 21 phiên",
-              "value": 0.021320450113894506,
+              "value": 0.020876658774612533,
               "contribution_pct": -0.8663765192031859,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -743,7 +789,7 @@
             {
               "feature": "xau_ret_21d",
               "label": "XAU/USD thay đổi 1 tháng",
-              "value": -0.0921986826784984,
+              "value": -0.09675083599722534,
               "contribution_pct": -0.1669577658176422,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -919,48 +965,62 @@
                 "DM_p": 0.8966
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 3.0296,
-                "RMSE": 5.3092,
-                "MAPE_%": 3.1359,
-                "DirAcc_%": 59.5499,
+                "model": "ECM",
+                "MAE": 2.8806,
+                "RMSE": 5.1091,
+                "MAPE_%": 3.0255,
+                "DirAcc_%": 66.3012,
                 "DirBase_%": 66.3012,
-                "DirEdge_pp": -6.7513,
-                "Dir_p": 1.0,
-                "TheilU": 1.015,
+                "DirEdge_pp": 0.0,
+                "Dir_p": 0.5112,
+                "TheilU": 0.9767,
                 "N": 1765,
-                "DM_stat": 0.3306,
-                "DM_p": 0.741
+                "DM_stat": -0.4006,
+                "DM_p": 0.6887
+              },
+              {
+                "model": "Ensemble_raw",
+                "MAE": 2.9538,
+                "RMSE": 5.231,
+                "MAPE_%": 3.0568,
+                "DirAcc_%": 62.3774,
+                "DirBase_%": 66.3012,
+                "DirEdge_pp": -3.9238,
+                "Dir_p": 0.9997,
+                "TheilU": 1.0,
+                "N": 1765,
+                "DM_stat": 0.001,
+                "DM_p": 0.9992
               },
               {
                 "model": "Ensemble",
-                "MAE": 2.9857,
-                "RMSE": 5.3784,
-                "MAPE_%": 3.0845,
-                "DirAcc_%": 59.2614,
+                "MAE": 2.9459,
+                "RMSE": 5.3019,
+                "MAPE_%": 3.0597,
+                "DirAcc_%": 60.7617,
                 "DirBase_%": 66.3012,
-                "DirEdge_pp": -7.0398,
+                "DirEdge_pp": -5.5395,
                 "Dir_p": 1.0,
-                "TheilU": 1.0282,
+                "TheilU": 1.0136,
                 "N": 1765,
-                "DM_stat": 0.4523,
-                "DM_p": 0.6511
+                "DM_stat": 0.2289,
+                "DM_p": 0.819
               }
             ],
-            "coverage90": 0.8775510204081632,
-            "coverage80": 0.7965014577259475,
-            "best_model": "Naive",
-            "ensemble_theilU": 1.028213696910984,
-            "ensemble_diracc": 59.26139642238893,
+            "coverage90": 0.8769679300291545,
+            "coverage80": 0.7988338192419825,
+            "best_model": "ECM",
+            "ensemble_theilU": 1.0135930751501554,
+            "ensemble_diracc": 60.76168493941142,
             "dir_base": 66.30121177149452,
-            "dir_edge_pp": -7.039815349105593,
-            "ensemble_dm_p": 0.6510864933304973,
-            "brier_skill": -0.1036425592744592,
+            "dir_edge_pp": -5.539526832083097,
+            "ensemble_dm_p": 0.8189777948858133,
+            "brier_skill": -0.09814296750607254,
             "locked": {
               "from": "2025-11-30",
-              "ensemble_theilU": 1.1196051203868838,
-              "ensemble_dm_p": 0.3332686619825257,
-              "ensemble_diracc": 52.91479820627802,
+              "ensemble_theilU": 1.0933920307996847,
+              "ensemble_dm_p": 0.42773309819695937,
+              "ensemble_diracc": 44.843049327354265,
               "dir_base": 66.81614349775785,
               "coverage90": 0.90625,
               "n": 224
@@ -973,8 +1033,8 @@
         {
           "feature": "gold_silver_ratio",
           "label": "Tỷ lệ vàng/bạc",
-          "value": 84.38928160823615,
-          "z_1y": 2.6236723066736256,
+          "value": 85.09647896001121,
+          "z_1y": 2.72043370523029,
           "unusual": true,
           "in_model_top10": true
         },
@@ -989,56 +1049,56 @@
         {
           "feature": "xau_ret_1d",
           "label": "XAU/USD thay đổi phiên gần nhất",
-          "value": 0.03891541730996195,
-          "z_1y": 2.1528250141472833,
-          "unusual": true,
-          "in_model_top10": true
-        },
-        {
-          "feature": "premium_chg_1d",
-          "label": "Premium thay đổi 1 phiên",
-          "value": -0.04164406161177503,
-          "z_1y": -1.989545852219089,
-          "unusual": true,
-          "in_model_top10": true
-        },
-        {
-          "feature": "passthrough_gap_1d",
-          "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
-          "value": 0.03444678993018169,
-          "z_1y": 1.8781151017991173,
+          "value": 0.034363263991235016,
+          "z_1y": 1.9085921732196927,
           "unusual": true,
           "in_model_top10": true
         },
         {
           "feature": "xau_macd_hist",
           "label": "MACD histogram vàng thế giới",
-          "value": -0.00956868968879414,
-          "z_1y": -1.6777435540192611,
+          "value": -0.009903517136202033,
+          "z_1y": -1.7387048664991922,
+          "unusual": true,
+          "in_model_top10": true
+        },
+        {
+          "feature": "premium_chg_1d",
+          "label": "Premium thay đổi 1 phiên",
+          "value": -0.036222697580276186,
+          "z_1y": -1.7356840169803132,
           "unusual": true,
           "in_model_top10": true
         },
         {
           "feature": "premium_pct",
           "label": "Domestic Gold Premium (%)",
-          "value": 0.18823633003448936,
-          "z_1y": 1.602382390710194,
+          "value": 0.1936576940659882,
+          "z_1y": 1.7250335913734443,
           "unusual": true,
           "in_model_top10": false
         },
         {
+          "feature": "passthrough_gap_1d",
+          "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
+          "value": 0.02989463661145475,
+          "z_1y": 1.634519510612289,
+          "unusual": true,
+          "in_model_top10": true
+        },
+        {
           "feature": "xau_ret_5d",
           "label": "XAU/USD thay đổi 5 phiên",
-          "value": -0.05278335931695466,
-          "z_1y": -1.304829551919918,
+          "value": -0.057335512635681596,
+          "z_1y": -1.4203108106500921,
           "unusual": false,
           "in_model_top10": false
         },
         {
           "feature": "premium_chg_5d",
           "label": "Premium thay đổi 5 phiên",
-          "value": 0.0328183988673727,
-          "z_1y": 1.0513383496552609,
+          "value": 0.03823976289887154,
+          "z_1y": 1.226224602416088,
           "unusual": false,
           "in_model_top10": true
         },
@@ -1053,8 +1113,8 @@
         {
           "feature": "silver_ret_5d",
           "label": "Giá bạc thay đổi 5 phiên",
-          "value": -0.07717904853146607,
-          "z_1y": -0.8235882716127061,
+          "value": -0.09007646287625759,
+          "z_1y": -0.9650006797481853,
           "unusual": false,
           "in_model_top10": true
         },
@@ -1069,16 +1129,16 @@
         {
           "feature": "dxy_ret_5d",
           "label": "DXY thay đổi 5 phiên",
-          "value": 0.006890697685569158,
-          "z_1y": 0.7827246915422268,
+          "value": 0.0069002832254820845,
+          "z_1y": 0.7839408817157016,
           "unusual": false,
           "in_model_top10": false
         },
         {
           "feature": "xau_ret_2d",
           "label": "XAU/USD thay đổi 2 phiên",
-          "value": -0.008337495320141386,
-          "z_1y": -0.28914559156054503,
+          "value": -0.012889648638868323,
+          "z_1y": -0.4677853367299078,
           "unusual": false,
           "in_model_top10": true
         },
@@ -1162,19 +1222,20 @@
           "label": "1 ngày",
           "target_date": "2026-11-24",
           "has_edge": true,
-          "model_return_pct": 0.7386746975798543,
-          "pred_return_pct": 0.7386746975798543,
-          "pred_price": 133.48236775850327,
-          "lo90": 131.5136333419968,
-          "hi90": 135.59701496808756,
-          "lo80": 132.14098563708566,
-          "hi80": 135.2699029442353,
-          "p_up": 0.836,
-          "p_down": 0.164,
+          "model_return_pct": 0.8048763288078933,
+          "pred_return_pct": 0.8048763288078933,
+          "pred_price": 133.57076452018188,
+          "lo90": 131.50791592003327,
+          "hi90": 135.85781831981262,
+          "lo80": 132.16800780596319,
+          "hi80": 135.39295218373158,
+          "p_up": 0.872,
+          "p_down": 0.128,
           "weights": {
-            "Naive": 0.04026298327731275,
-            "LinearRegression": 0.4051568437940042,
-            "XGBoost": 0.5545801729286831
+            "Naive": 0.033647177570400894,
+            "LinearRegression": 0.32201546115366764,
+            "XGBoost": 0.4634544198335533,
+            "ECM": 0.18088294144237818
           },
           "models": {
             "Naive": {
@@ -1183,36 +1244,41 @@
               "corrected_price": 132.3517391327673
             },
             "LinearRegression": {
-              "return_pct": 1.0060615627549923,
-              "price": 133.83975967380033,
-              "corrected_price": 133.95163987319606
+              "return_pct": 0.8100198470229238,
+              "price": 133.57763493347386,
+              "corrected_price": 133.69076634200854
             },
             "XGBoost": {
-              "return_pct": 0.5440434906631708,
-              "price": 133.22282207549432,
-              "corrected_price": 133.22282207549432
+              "return_pct": 0.5393233150243759,
+              "price": 133.2165338727097,
+              "corrected_price": 133.2165338727097
+            },
+            "ECM": {
+              "return_pct": 1.5582432071539434,
+              "price": 134.5808424381289,
+              "corrected_price": 134.497032547071
             }
           },
           "shap_top": [
             {
               "feature": "xau_ret_1d",
               "label": "XAU/USD thay đổi phiên gần nhất",
-              "value": 0.03891541730996195,
-              "contribution_pct": 0.3229680359363556,
+              "value": 0.034363263991235016,
+              "contribution_pct": 0.32428643107414246,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "passthrough_gap_1d",
               "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
-              "value": 0.03660962099112375,
-              "contribution_pct": 0.11203902959823608,
+              "value": 0.03205746767239681,
+              "contribution_pct": 0.11584061384201051,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "dxy_ret_1d",
               "label": "DXY thay đổi 1 phiên",
-              "value": 0.004383033311378348,
-              "contribution_pct": -0.08308858424425125,
+              "value": 0.0043926188512912745,
+              "contribution_pct": -0.08336012810468674,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
@@ -1226,7 +1292,7 @@
               "feature": "dom_macd_hist",
               "label": "MACD histogram giá trong nước",
               "value": -0.0048493960348117635,
-              "contribution_pct": 0.0678810104727745,
+              "contribution_pct": 0.06987728178501129,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
@@ -1239,7 +1305,7 @@
             {
               "feature": "premium_chg_1d",
               "label": "Premium thay đổi 1 phiên",
-              "value": -0.04348646446034987,
+              "value": -0.03816549605906405,
               "contribution_pct": 0.060230370610952384,
               "direction": "Tích cực (đẩy giá lên)"
             },
@@ -1255,12 +1321,12 @@
             {
               "feature": "xau_ret_1d",
               "label": "XAU/USD thay đổi phiên gần nhất",
-              "mean_abs_shap": 0.17452840507030487
+              "mean_abs_shap": 0.1745336949825287
             },
             {
               "feature": "passthrough_gap_1d",
               "label": "Giá TG quy đổi tăng nhanh hơn giá SJC (1 phiên)",
-              "mean_abs_shap": 0.08015978336334229
+              "mean_abs_shap": 0.0801749899983406
             },
             {
               "feature": "premium_chg_1d",
@@ -1275,7 +1341,7 @@
             {
               "feature": "xau_ret_2d",
               "label": "XAU/USD thay đổi 2 phiên",
-              "mean_abs_shap": 0.04179462417960167
+              "mean_abs_shap": 0.041832901537418365
             },
             {
               "feature": "dom_ma20_50",
@@ -1285,7 +1351,7 @@
             {
               "feature": "dxy_ret_1d",
               "label": "DXY thay đổi 1 phiên",
-              "mean_abs_shap": 0.028873922303318977
+              "mean_abs_shap": 0.028875010088086128
             },
             {
               "feature": "premium_pct",
@@ -1295,7 +1361,7 @@
             {
               "feature": "dom_macd_hist",
               "label": "MACD histogram giá trong nước",
-              "mean_abs_shap": 0.0215560682117939
+              "mean_abs_shap": 0.021564053371548653
             },
             {
               "feature": "cpi_yoy",
@@ -1346,17 +1412,17 @@
               },
               {
                 "model": "LinearRegression",
-                "MAE": 1.1333,
-                "RMSE": 1.8404,
-                "MAPE_%": 0.736,
+                "MAE": 1.1336,
+                "RMSE": 1.8408,
+                "MAPE_%": 0.7362,
                 "DirAcc_%": 69.4444,
                 "DirBase_%": 51.7361,
                 "DirEdge_pp": 17.7083,
                 "Dir_p": 0.0,
-                "TheilU": 0.9077,
+                "TheilU": 0.9079,
                 "N": 354,
-                "DM_stat": -1.7704,
-                "DM_p": 0.0775
+                "DM_stat": -1.7668,
+                "DM_p": 0.0781
               },
               {
                 "model": "XGBoost",
@@ -1373,50 +1439,64 @@
                 "DM_p": 0.0007
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 1.0734,
-                "RMSE": 1.8675,
-                "MAPE_%": 0.6962,
-                "DirAcc_%": 70.1389,
+                "model": "ECM",
+                "MAE": 1.096,
+                "RMSE": 1.837,
+                "MAPE_%": 0.7091,
+                "DirAcc_%": 70.4861,
                 "DirBase_%": 51.7361,
-                "DirEdge_pp": 18.4028,
+                "DirEdge_pp": 18.75,
                 "Dir_p": 0.0,
-                "TheilU": 0.921,
+                "TheilU": 0.906,
                 "N": 354,
-                "DM_stat": -3.0843,
-                "DM_p": 0.0022
+                "DM_stat": -1.4906,
+                "DM_p": 0.137
+              },
+              {
+                "model": "Ensemble_raw",
+                "MAE": 1.0635,
+                "RMSE": 1.8374,
+                "MAPE_%": 0.6891,
+                "DirAcc_%": 71.1806,
+                "DirBase_%": 51.7361,
+                "DirEdge_pp": 19.4444,
+                "Dir_p": 0.0,
+                "TheilU": 0.9062,
+                "N": 354,
+                "DM_stat": -2.6045,
+                "DM_p": 0.0096
               },
               {
                 "model": "Ensemble",
-                "MAE": 1.0907,
-                "RMSE": 1.8524,
-                "MAPE_%": 0.7077,
-                "DirAcc_%": 68.4028,
+                "MAE": 1.058,
+                "RMSE": 1.8115,
+                "MAPE_%": 0.6857,
+                "DirAcc_%": 69.7917,
                 "DirBase_%": 51.7361,
-                "DirEdge_pp": 16.6667,
+                "DirEdge_pp": 18.0556,
                 "Dir_p": 0.0,
-                "TheilU": 0.9136,
+                "TheilU": 0.8934,
                 "N": 354,
-                "DM_stat": -2.192,
-                "DM_p": 0.029
+                "DM_stat": -1.8538,
+                "DM_p": 0.0646
               }
             ],
-            "coverage90": 0.9012345679012346,
-            "coverage80": 0.7932098765432098,
-            "best_model": "LinearRegression",
-            "ensemble_theilU": 0.9136023791242565,
-            "ensemble_diracc": 68.40277777777779,
+            "coverage90": 0.8981481481481481,
+            "coverage80": 0.7839506172839507,
+            "best_model": "Ensemble",
+            "ensemble_theilU": 0.8934217185207105,
+            "ensemble_diracc": 69.79166666666666,
             "dir_base": 51.736111111111114,
-            "dir_edge_pp": 16.666666666666664,
-            "ensemble_dm_p": 0.029035102125832688,
-            "brier_skill": 0.20976254792973703,
+            "dir_edge_pp": 18.055555555555546,
+            "ensemble_dm_p": 0.06460861472172819,
+            "brier_skill": 0.2535084634946736,
             "locked": {
               "from": "2025-11-30",
-              "ensemble_theilU": 0.920534830222345,
-              "ensemble_dm_p": 0.07199055490338745,
+              "ensemble_theilU": 0.9124047455588034,
+              "ensemble_dm_p": 0.17140477972917395,
               "ensemble_diracc": 71.71717171717171,
               "dir_base": 53.535353535353536,
-              "coverage90": 0.925,
+              "coverage90": 0.9208333333333333,
               "n": 240
             },
             "start": "2025-06-20"
@@ -1426,17 +1506,18 @@
           "label": "7 ngày",
           "target_date": "2026-11-30",
           "has_edge": false,
-          "model_return_pct": -0.4998262407014765,
+          "model_return_pct": 0.0015046548596463292,
           "pred_return_pct": 0.0,
           "pred_price": 132.5,
-          "lo90": 127.4033843959395,
-          "hi90": 137.46801412285075,
-          "lo80": 128.02613941729965,
-          "hi80": 136.84376017379213,
-          "p_up": 0.412,
-          "p_down": 0.588,
+          "lo90": 126.90192301517253,
+          "hi90": 137.3053468352433,
+          "lo80": 127.87967240156912,
+          "hi80": 135.70214514626014,
+          "p_up": 0.4,
+          "p_down": 0.6,
           "weights": {
-            "Naive": 1.0
+            "Naive": 0.49102308278586154,
+            "ECM": 0.5089769172141384
           },
           "models": {
             "Naive": {
@@ -1445,14 +1526,19 @@
               "corrected_price": 131.83938257601773
             },
             "LinearRegression": {
-              "return_pct": -2.8348213796015758,
-              "price": 128.7966020380718,
-              "corrected_price": 131.48082123228127
+              "return_pct": -2.8675094892686115,
+              "price": 128.75450774383953,
+              "corrected_price": 131.43784966092556
             },
             "XGBoost": {
               "return_pct": -0.37300067488104105,
               "price": 132.00669469378752,
               "corrected_price": 131.35372426667485
+            },
+            "ECM": {
+              "return_pct": 0.9663520839037006,
+              "price": 133.7866231535539,
+              "corrected_price": 133.1443875011163
             }
           },
           "shap_top": [
@@ -1467,20 +1553,20 @@
               "feature": "spread_pct",
               "label": "Chênh lệch mua-bán SJC",
               "value": 0.04150943396226415,
-              "contribution_pct": 0.28215867280960083,
+              "contribution_pct": 0.2763878405094147,
               "direction": "Tích cực (đẩy giá lên)"
             },
             {
               "feature": "xau_vol21",
               "label": "Biến động vàng thế giới 21 phiên",
-              "value": 0.021320450113894506,
+              "value": 0.020876658774612533,
               "contribution_pct": -0.24523858726024625,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
               "feature": "xau_macd_hist",
               "label": "MACD histogram vàng thế giới",
-              "value": -0.00956868968879414,
+              "value": -0.009903517136202033,
               "contribution_pct": 0.24313728511333468,
               "direction": "Tích cực (đẩy giá lên)"
             },
@@ -1494,7 +1580,7 @@
             {
               "feature": "premium_pct",
               "label": "Domestic Gold Premium (%)",
-              "value": 0.1662319535523693,
+              "value": 0.17155292195365512,
               "contribution_pct": -0.17667578160762787,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -1522,7 +1608,7 @@
             {
               "feature": "spread_pct",
               "label": "Chênh lệch mua-bán SJC",
-              "mean_abs_shap": 0.2386680543422699
+              "mean_abs_shap": 0.23864497244358063
             },
             {
               "feature": "premium_pct",
@@ -1635,50 +1721,64 @@
                 "DM_p": 0.2817
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 3.8103,
-                "RMSE": 5.2334,
-                "MAPE_%": 2.4955,
-                "DirAcc_%": 52.9586,
+                "model": "ECM",
+                "MAE": 3.236,
+                "RMSE": 4.6951,
+                "MAPE_%": 2.1162,
+                "DirAcc_%": 57.6923,
                 "DirBase_%": 51.4793,
-                "DirEdge_pp": 1.4793,
-                "Dir_p": 0.3123,
-                "TheilU": 1.1483,
+                "DirEdge_pp": 6.213,
+                "Dir_p": 0.0127,
+                "TheilU": 1.0302,
                 "N": 346,
-                "DM_stat": 2.8847,
-                "DM_p": 0.0042
+                "DM_stat": 0.6123,
+                "DM_p": 0.5408
+              },
+              {
+                "model": "Ensemble_raw",
+                "MAE": 3.5607,
+                "RMSE": 4.9983,
+                "MAPE_%": 2.3291,
+                "DirAcc_%": 57.9882,
+                "DirBase_%": 51.4793,
+                "DirEdge_pp": 6.5089,
+                "Dir_p": 0.0095,
+                "TheilU": 1.0967,
+                "N": 346,
+                "DM_stat": 2.0117,
+                "DM_p": 0.045
               },
               {
                 "model": "Ensemble",
-                "MAE": 3.0946,
-                "RMSE": 4.5591,
-                "MAPE_%": 2.0308,
-                "DirAcc_%": 61.8343,
+                "MAE": 3.0587,
+                "RMSE": 4.4761,
+                "MAPE_%": 2.0056,
+                "DirAcc_%": 61.2426,
                 "DirBase_%": 51.4793,
-                "DirEdge_pp": 10.355,
-                "Dir_p": 0.0001,
-                "TheilU": 1.0003,
+                "DirEdge_pp": 9.7633,
+                "Dir_p": 0.0002,
+                "TheilU": 0.9821,
                 "N": 346,
-                "DM_stat": 0.0133,
-                "DM_p": 0.9894
+                "DM_stat": -0.4879,
+                "DM_p": 0.6259
               }
             ],
-            "coverage90": 0.8910256410256411,
-            "coverage80": 0.7788461538461539,
-            "best_model": "Naive",
-            "ensemble_theilU": 1.0003378920428097,
-            "ensemble_diracc": 61.834319526627226,
+            "coverage90": 0.8942307692307693,
+            "coverage80": 0.7884615384615384,
+            "best_model": "Ensemble",
+            "ensemble_theilU": 0.9821314530270968,
+            "ensemble_diracc": 61.24260355029586,
             "dir_base": 51.4792899408284,
-            "dir_edge_pp": 10.355029585798825,
-            "ensemble_dm_p": 0.9893637810725426,
-            "brier_skill": 0.018601405831818685,
+            "dir_edge_pp": 9.763313609467462,
+            "ensemble_dm_p": 0.6259352297427363,
+            "brier_skill": 0.05080803402125589,
             "locked": {
               "from": "2025-11-30",
-              "ensemble_theilU": 1.0085401968362062,
-              "ensemble_dm_p": 0.7650214315466247,
-              "ensemble_diracc": 58.4070796460177,
+              "ensemble_theilU": 1.0007723711548215,
+              "ensemble_dm_p": 0.9851393955956156,
+              "ensemble_diracc": 55.75221238938053,
               "dir_base": 58.849557522123895,
-              "coverage90": 0.9396551724137931,
+              "coverage90": 0.9267241379310345,
               "n": 232
             },
             "start": "2025-06-20"
@@ -1707,28 +1807,33 @@
               "corrected_price": 130.7803793066078
             },
             "LinearRegression": {
-              "return_pct": -6.323990330195928,
-              "price": 124.38016747138643,
-              "corrected_price": 122.07913834367127
+              "return_pct": -6.456005812807603,
+              "price": 124.21607473076945,
+              "corrected_price": 121.91808131351748
             },
             "XGBoost": {
-              "return_pct": -2.467235177755356,
-              "price": 129.2709117901407,
-              "corrected_price": 126.1397151346497
+              "return_pct": -2.377893030643463,
+              "price": 129.3864568058384,
+              "corrected_price": 126.25246142198925
+            },
+            "ECM": {
+              "return_pct": -1.4103827470877184,
+              "price": 130.6443594371976,
+              "corrected_price": 129.27782457039854
             }
           },
           "shap_top": [
             {
               "feature": "xau_vol21",
               "label": "Biến động vàng thế giới 21 phiên",
-              "value": 0.021320450113894506,
+              "value": 0.020876658774612533,
               "contribution_pct": -1.1175570487976074,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
               "feature": "premium_pct",
               "label": "Domestic Gold Premium (%)",
-              "value": 0.1662319535523693,
+              "value": 0.17155292195365512,
               "contribution_pct": -0.5502613186836243,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -1742,7 +1847,7 @@
             {
               "feature": "xau_ret_63d",
               "label": "XAU/USD thay đổi 3 tháng",
-              "value": -0.2503229043893995,
+              "value": -0.25487505770812646,
               "contribution_pct": -0.33400198817253113,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
@@ -1756,15 +1861,8 @@
             {
               "feature": "xau_ret_21d",
               "label": "XAU/USD thay đổi 1 tháng",
-              "value": -0.0921986826784984,
+              "value": -0.09675083599722534,
               "contribution_pct": -0.28705915808677673,
-              "direction": "Tiêu cực (kéo giá xuống)"
-            },
-            {
-              "feature": "gold_silver_ratio",
-              "label": "Tỷ lệ vàng/bạc",
-              "value": 84.38928160823615,
-              "contribution_pct": -0.2571500539779663,
               "direction": "Tiêu cực (kéo giá xuống)"
             },
             {
@@ -1772,6 +1870,13 @@
               "label": "Giá trong nước so với MA50",
               "value": -0.06337918651831542,
               "contribution_pct": -0.22820517420768738,
+              "direction": "Tiêu cực (kéo giá xuống)"
+            },
+            {
+              "feature": "xau_bb_pctb",
+              "label": "Vị trí trong dải Bollinger (vàng thế giới)",
+              "value": 0.07823729597100086,
+              "contribution_pct": -0.22461754083633423,
               "direction": "Tiêu cực (kéo giá xuống)"
             }
           ],
@@ -1784,7 +1889,7 @@
             {
               "feature": "gold_silver_ratio",
               "label": "Tỷ lệ vàng/bạc",
-              "mean_abs_shap": 1.0650522708892822
+              "mean_abs_shap": 1.0646950006484985
             },
             {
               "feature": "dom_ma20_50",
@@ -1897,43 +2002,57 @@
                 "DM_p": 0.547
               },
               {
-                "model": "Ensemble_raw",
-                "MAE": 10.2149,
-                "RMSE": 12.4423,
-                "MAPE_%": 6.6505,
-                "DirAcc_%": 48.9362,
+                "model": "ECM",
+                "MAE": 7.915,
+                "RMSE": 10.8254,
+                "MAPE_%": 5.2108,
+                "DirAcc_%": 71.1246,
                 "DirBase_%": 55.9271,
-                "DirEdge_pp": -6.9909,
-                "Dir_p": 0.9953,
-                "TheilU": 1.2706,
+                "DirEdge_pp": 15.1976,
+                "Dir_p": 0.0,
+                "TheilU": 1.1055,
                 "N": 330,
-                "DM_stat": 1.6508,
-                "DM_p": 0.0997
+                "DM_stat": 0.5053,
+                "DM_p": 0.6137
+              },
+              {
+                "model": "Ensemble_raw",
+                "MAE": 9.3611,
+                "RMSE": 11.7372,
+                "MAPE_%": 6.1136,
+                "DirAcc_%": 57.1429,
+                "DirBase_%": 55.9271,
+                "DirEdge_pp": 1.2158,
+                "Dir_p": 0.3495,
+                "TheilU": 1.1986,
+                "N": 330,
+                "DM_stat": 1.144,
+                "DM_p": 0.2534
               },
               {
                 "model": "Ensemble",
-                "MAE": 7.863,
-                "RMSE": 9.9771,
-                "MAPE_%": 5.1562,
+                "MAE": 7.8701,
+                "RMSE": 9.9797,
+                "MAPE_%": 5.1622,
                 "DirAcc_%": 63.2219,
                 "DirBase_%": 55.9271,
                 "DirEdge_pp": 7.2948,
                 "Dir_p": 0.0043,
-                "TheilU": 1.0189,
+                "TheilU": 1.0191,
                 "N": 330,
-                "DM_stat": 0.1982,
-                "DM_p": 0.843
+                "DM_stat": 0.201,
+                "DM_p": 0.8408
               }
             ],
             "coverage90": 0.875,
             "coverage80": 0.7642857142857142,
             "best_model": "Naive",
-            "ensemble_theilU": 1.0188553036205061,
+            "ensemble_theilU": 1.0191199477544741,
             "ensemble_diracc": 63.22188449848024,
             "dir_base": 55.92705167173252,
             "dir_edge_pp": 7.294832826747721,
-            "ensemble_dm_p": 0.8429795721208523,
-            "brier_skill": 0.20033269285940103,
+            "ensemble_dm_p": 0.8407936818747728,
+            "brier_skill": 0.19607589672177062,
             "locked": {
               "from": "2025-11-30",
               "ensemble_theilU": 1.072784085479757,
@@ -1995,5 +2114,5 @@
     "n_scored": 12,
     "ensemble_mape_%": 1.7404957671206263
   },
-  "runtime_sec": 568.1
+  "runtime_sec": 408.7
 }
