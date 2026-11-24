@@ -7,3 +7,4 @@ logs/
 models/*.pkl
 .claude/
 .streamlit/secrets.toml
+scripts/experiments/_cache/
