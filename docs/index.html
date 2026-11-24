@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Giá vàng hôm nay và sắp tới</title>
+<meta name="description" content="Giá vàng SJC và vàng nhẫn 9999 hôm nay, dự đoán dễ hiểu.">
+<meta name="theme-color" content="#b7791f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Giá vàng">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+  <header class="top">
+    <h1>🪙 Giá vàng hôm nay và sắp tới</h1>
+    <div class="muted" id="updated">Đang tải…</div>
+    <div class="row">
+      <div class="seg" role="tablist" aria-label="Chọn loại vàng">
+        <button role="tab" data-t="sjc_sell" aria-selected="true">Vàng miếng SJC</button>
+        <button role="tab" data-t="ring_sell" aria-selected="false">Vàng nhẫn 9999</button>
+      </div>
+      <button class="btn" id="refresh" type="button">🔄 Cập nhật</button>
+    </div>
+  </header>
+  <div id="install" class="install" hidden></div>
+  <div id="notes"></div>
+  <div id="content"><p class="muted">Đang tải dữ liệu…</p></div>
+  <footer>
+    <p><b>Dự đoán để tham khảo, không phải lời khuyên mua bán.</b></p>
+    <p class="muted" id="foot-update"></p>
+    <p><a href="https://github.com/DNQH/vn-gold-forecast" rel="noopener">Mã nguồn trên GitHub</a></p>
+  </footer>
+</main>
+<noscript><p style="padding:1rem">Cần bật JavaScript để xem giá vàng.</p></noscript>
+<script src="app.js"></script>
+</body>
+</html>

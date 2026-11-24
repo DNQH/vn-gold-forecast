@@ -14,6 +14,17 @@ view for non-technical users and a professional analytics view.*
 
 > ⚠️ Công cụ nghiên cứu, **không phải khuyến nghị đầu tư**.
 
+## 📱 Cài lên điện thoại
+
+Mở **https://dnqh.github.io/vn-gold-forecast/** trên điện thoại rồi thêm vào màn hình chính để mở nhanh bằng một chạm:
+
+- **iPhone (Safari):** bấm nút **Chia sẻ** → **Thêm vào MH chính**.
+- **Android (Chrome):** bấm **⋮** → **Thêm vào màn hình chính** (hoặc bấm nút **Cài vào điện thoại** trên trang).
+
+Dự đoán được cập nhật mỗi sáng khoảng 7 giờ (khi máy Mac chạy dự báo đang bật); giá đang niêm yết được làm mới mỗi 5 phút.
+Ứng dụng là trang web tĩnh trong thư mục `docs/` (GitHub Pages), dữ liệu xuất bằng `scripts/export_web.py`;
+`scripts/daily.sh` tự commit và push dữ liệu mới (đặt `AUTO_PUSH=0` trong file để tắt).
+
 ## Hai phiên bản giao diện
 
 | 🏠 **Dễ hiểu**: cho người lớn tuổi, người không rành công nghệ | 📊 **Chuyên sâu**: cho người làm phân tích |

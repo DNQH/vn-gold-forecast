@@ -11,6 +11,7 @@ import streamlit as st
 from ui import (WEEKDAYS, DOWN, FLAT, GOLD, MUTED, PROC, TARGET_SHORT, UP, bucket_of, calibration, chart, inject_css,
                 freshness, live_prices, load, outlook, plotly_layout, ten, tracking, vn, vn_date, vn_now,
                 when_label)
+from vngold.plain import plain_reason  # noqa: E402  (src/ được ui.py thêm vào sys.path)
 
 inject_css("""
 html {font-size: 19px;}
@@ -223,42 +224,6 @@ chart(fig)
 
 # ------------------------------------------------------------------ vì sao
 H1 = T["horizons"].get("1", {})
-
-
-def plain_reason(f: str, v, c: float) -> str | None:
-    if v is None:
-        v = 0.0
-    pct = abs(np.expm1(v)) * 100 if abs(v) < 1 else abs(v)
-    up = v > 0
-    if f.startswith("xau_ret_"):
-        span = {"1d": "đêm qua", "2d": "2 ngày qua", "5d": "tuần qua", "10d": "2 tuần qua", "21d": "tháng qua",
-                "63d": "3 tháng qua"}.get(f.split("_")[-1], "gần đây")
-        return f"Giá vàng thế giới {span} {'tăng' if up else 'giảm'} {vn(pct)}%"
-    if f.startswith("passthrough_gap"):
-        return ("Giá thế giới tăng nhanh hơn giá trong nước – giá trong nước có thể tăng theo" if up else
-                "Giá thế giới giảm mạnh hơn giá trong nước – giá trong nước có thể giảm theo")
-    if f.startswith("premium_chg"):
-        return ("Giá trong nước đang cao hơn giá thế giới nhiều hơn trước" if up else
-                "Khoảng cách giữa giá trong nước và thế giới đang thu hẹp")
-    if f.startswith("premium"):
-        return "Giá trong nước đang cao hơn giá thế giới khá nhiều"
-    if f.startswith("usdvnd"):
-        return f"Tỷ giá đô la Mỹ ở Việt Nam {'tăng' if up else 'giảm'}"
-    if f.startswith("dxy"):
-        return f"Đồng đô la Mỹ trên thế giới {'mạnh lên' if up else 'yếu đi'}"
-    if f.startswith("ret_") or f.startswith("dom_ret"):
-        return f"Giá vàng trong nước mấy ngày qua đã {'tăng' if up else 'giảm'}"
-    if f.startswith("vix"):
-        return f"Tâm lý lo ngại trên thị trường thế giới {'tăng' if up else 'giảm'}"
-    if f.startswith("policy_regime"):
-        return "Chính sách quản lý vàng hiện nay (Nghị định 232/2025)"
-    if any(k in f for k in ("macd", "rsi", "ma20", "ma50")):
-        return "Xu hướng giá vài tuần gần đây"
-    if f.startswith("silver") or f == "gold_silver_ratio":
-        return "Diễn biến giá bạc thế giới"
-    if f.startswith("us10y") or f.startswith("real_rate") or f == "fed_funds":
-        return "Lãi suất ở Mỹ"
-    return None
 
 
 if H1.get("has_edge") and H1.get("shap_top"):

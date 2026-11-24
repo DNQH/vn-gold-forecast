@@ -15,6 +15,8 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 PROC = ROOT / "data" / "processed"
 
+from vngold.plain import BUCKETS, BUCKET_NAMES, bucket_of, calibration_table, vn  # noqa: E402,F401
+
 # Bảng màu thống nhất
 INK, MUTED, LINE = "#1f2937", "#6b7280", "#e5e7eb"
 UP, DOWN, FLAT = "#15803d", "#b91c1c", "#6b7280"
@@ -57,35 +59,10 @@ def outlook(target: str) -> dict:
 @st.cache_data(ttl=600, show_spinner=False)
 def calibration(target: str, h: int) -> pd.DataFrame:
     """Khi phần mềm nói P(tăng) ở mức X, giá tăng thật bao nhiêu lần? (walk-forward)."""
-    f = PROC / f"backtest_{target}_h{h}.csv"
-    if not f.exists():
-        return pd.DataFrame()
-    wf = pd.read_csv(f, index_col=0, parse_dates=True)
-    w = wf[wf.p_up.notna() & wf.actual.notna() & (wf.actual != 0)]
-    bucket = pd.cut(w.p_up, BUCKETS, labels=BUCKET_NAMES, include_lowest=True)
-    up = w.actual > 0
-    g = pd.DataFrame({"n": up.groupby(bucket, observed=False).size(),
-                      "up": up.groupby(bucket, observed=False).mean()})
-    return g
-
-
-BUCKETS = [0, 0.3, 0.45, 0.55, 0.7, 1.0001]
-BUCKET_NAMES = ["strong_down", "lean_down", "unclear", "lean_up", "strong_up"]
-
-
-def bucket_of(p: float) -> str:
-    return pd.cut([p], BUCKETS, labels=BUCKET_NAMES, include_lowest=True)[0]
+    return calibration_table(target, h, PROC)
 
 
 # ------------------------------------------------------------------ định dạng
-def vn(v, d: int = 1) -> str:
-    """134.25 -> '134,3' ; 1234.5 -> '1.234,5' (dấu thập phân kiểu Việt Nam)."""
-    if v is None or (isinstance(v, float) and np.isnan(v)):
-        return "–"
-    s = f"{v:,.{d}f}"
-    return s.replace(",", "§").replace(".", ",").replace("§", ".")
-
-
 def vn_date(ts, weekday: bool = True) -> str:
     ts = pd.Timestamp(ts)
     return f"{WEEKDAYS[ts.weekday()]}, {ts:%d/%m/%Y}" if weekday else f"{ts:%d/%m/%Y}"
