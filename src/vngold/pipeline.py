@@ -40,6 +40,22 @@ def _prepare(df: pd.DataFrame, target: str):
     return ds, start
 
 
+def build_models(target: str, h: int, lstm: bool, df: pd.DataFrame | None = None,
+                 ds: WFData | None = None, use_ecm: bool | None = None) -> list:
+    """Danh sách mô hình cho một mục tiêu/kỳ hạn. ECM (thử nghiệm) chỉ thêm khi USE_ECM bật."""
+    from vngold import config
+    models = default_models(include_lstm=lstm) if target == "sjc_sell" else \
+        [Naive(), LinearRegressionModel(), XGBoostModel()]
+    use_ecm = config.USE_ECM if use_ecm is None else use_ecm
+    if use_ecm and df is not None and ds is not None:
+        from vngold.ecm import ECMModel, ecm_frame
+        p = config.ECM_PARAMS
+        Z = ecm_frame(df, target, p["prem_window"], p["world"]).reindex(ds.X.index)
+        cols = config.ECM_COLS_H1 if h == 1 else config.ECM_COLS_LONG
+        models.append(ECMModel(Z, cols=cols, halflife=p["halflife"]))
+    return models
+
+
 def backtest(ds: WFData, start: int, h: int, models, min_train: int):
     wf = walk_forward(ds, models, h, start, min_train=min_train)
     names = [m.name for m in models]
@@ -176,8 +192,7 @@ def run(collect: bool = True, include_lstm: bool = True, do_ablation: bool = Tru
         report.append(f"\n## {TARGET_NAMES[target]}\n")
         print(f"== Backtest {target}")
         for h, hname in HORIZONS.items():
-            models = default_models(include_lstm=lstm) if target == "sjc_sell" else \
-                [Naive(), LinearRegressionModel(), XGBoostModel()]
+            models = build_models(target, h, lstm, df, ds)
             if len(ds.X) - start - min_train < 60 + h:
                 continue
             wf, on, st, table = backtest(ds, start, h, models, min_train)
@@ -208,8 +223,7 @@ def run(collect: bool = True, include_lstm: bool = True, do_ablation: bool = Tru
                 report.append("\n*Lớp tự học – đóng góp từng thành phần (cùng dự báo walk-forward):*\n")
                 report.append(_md_table(oa.set_index("Biến thể")))
 
-            fresh = default_models(include_lstm=lstm) if target == "sjc_sell" else \
-                [Naive(), LinearRegressionModel(), XGBoostModel()]
+            fresh = build_models(target, h, lstm, df, ds)
             fc = final_forecast(ds, start, h, fresh, st, len(ds.X) - 1)
             p0 = float(ds.price.iloc[-1])
             target_date = ds.X.index[-1] + pd.offsets.BDay(h)

@@ -68,6 +68,16 @@ RANDOM_STATE = 42
 # Kết quả sau mốc này là kiểm định chưa từng dùng để chỉnh tham số (gần với thực tế nhất).
 LOCK_DATE = "2025-11-30"
 
+# Thử nghiệm (nhánh experiment/accuracy, reports/03_accuracy_experiments.md): thêm mô hình hiệu chỉnh
+# sai số (ECM, vngold/ecm.py) làm một thành viên của ensemble tự học. MẶC ĐỊNH TẮT.
+# Bật: đặt USE_ECM = True, hoặc biến môi trường VNGOLD_USE_ECM=1 khi chạy pipeline.
+USE_ECM = os.environ.get("VNGOLD_USE_ECM", "0") == "1"
+# Cấu hình đã chốt trên giai đoạn DEV (<= LOCK_DATE): premium trượt 60 phiên, giá thế giới USD,
+# OLS trọng số half-life 500 phiên. Kỳ hạn > 1 dùng bộ biến dài hạn.
+ECM_PARAMS = {"prem_window": 60, "world": "usd", "halflife": 500}
+ECM_COLS_H1 = ("ec", "dw0", "dw1", "dp0", "dp1")
+ECM_COLS_LONG = ("ec", "ec120", "dw0", "dw5", "dw21")
+
 # Chỉ công bố dự báo điểm khác Naive khi backtest cho thấy có lợi thế
 EDGE_MAX_THEILU = 1.0
 EDGE_MAX_DM_P = 0.10

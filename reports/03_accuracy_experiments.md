@@ -95,3 +95,48 @@ Naive trên giai đoạn khoá (production report: U 1.13).
   thấp hơn 0.0001–0.0003 (chênh lệch vô nghĩa, không áp dụng được cho nhẫn).
 * **Ứng viên phụ (chỉ để kiểm chứng giả thuyết, không triển khai nếu không thắng rõ): ECM dài hạn đơn lẻ ở h=21.**
 * Tiêu chí "cải thiện": RMSE DEV < Ensemble **và** RMSE LOCK ≤ Ensemble, báo cáo DM vs Ensemble ở cả hai giai đoạn.
+
+## 3. Giai đoạn khoá (01/12/2025 → 23/11/2026) – đánh giá MỘT LẦN ứng viên đã chốt
+
+| mục tiêu, h | mô hình | RMSE | MAE | Theil U | DM p vs Naive | DM p vs Ensemble | DirAcc % (base) | Phủ 90% / 80% | N |
+|---|---|---|---|---|---|---|---|---|---|
+| SJC, 1 | Ensemble | 2.000 | 1.211 | 0.904 | 0.008 | – | 68.1 (54.1) | 91.0 / 82.8 | 244 |
+| SJC, 1 | **Ens+ECM** | **1.965** | 1.208 | **0.888** | 0.016 | 0.27 (stat −1.10) | 67.6 (54.1) | 91.0 / 82.0 | 244 |
+| Nhẫn, 1 | Ensemble | 2.130 | 1.277 | 0.921 | 0.072 | – | 71.7 (53.5) | 92.5 / 83.8 | 240 |
+| Nhẫn, 1 | **Ens+ECM** | **2.111** | 1.273 | **0.912** | 0.171 | 0.74 (stat −0.34) | 71.7 (53.5) | 92.1 / 80.8 | 240 |
+| SJC, 5 | Ensemble / Ens+ECM | 4.955 / 4.908 | 3.41 / 3.41 | 1.016 / 1.006 | 0.59 / 0.84 | 0.21 | 55.1 / 56.0 (56.8) | 90%: 89.6 / 90.0 | 240 |
+| SJC, 21 | Ensemble / Ens+ECM | 11.17 / 10.91 | 8.74 / 8.46 | 1.120 / 1.093 | 0.33 / 0.43 | 0.18 | 52.9 / 44.8 (66.8) | 90%: 90.6 / 90.6 | 224 |
+| Nhẫn, 5 | Ensemble / Ens+ECM | 5.071 / 5.032 | 3.45 / 3.46 | 1.009 / 1.001 | 0.77 / 0.99 | 0.74 | 58.4 / 55.8 (58.8) | 90%: 94.0 / 92.7 | 232 |
+| Nhẫn, 21 | Ensemble / Ens+ECM | 11.07 / 11.07 | 8.71 / 8.71 | 1.073 / 1.073 | 0.55 / 0.55 | 0.61 | 55.3 / 55.3 (65.6) | 90%: 90.3 / 90.3 | 216 |
+
+Độ rộng trung bình khoảng 90% (log-return) SJC h=1: 0.0382 → 0.0400; nhẫn h=1: 0.0529 → 0.0518.
+
+**Ứng viên phụ – ECM dài hạn đơn lẻ, h=21:** SJC U = 1.054 (DM p vs Naive 0.65), nhẫn U = 1.239 ⇒ "lợi thế" trên DEV
+(U 0.906, p 0.050) **không** lặp lại. Kết luận: không có mô hình nào có lợi thế ở h=5/h=21; giữ nguyên chính sách
+"chỉ công bố khoảng, tâm = Naive".
+
+*Hậu kiểm (KHÔNG dùng để chọn, chỉ để minh bạch):* SJC h=1 LOCK – ECM đơn lẻ RMSE 1.914 (U 0.865, p vs Ens 0.32),
+Ens_lean+ECM 1.965, Stack_NNLS 1.973, Ens_noARIMA 1.999, Ens_lean 2.013. Nhẫn h=1 LOCK – ECM đơn lẻ 2.155 (thua
+Ensemble; mức cải thiện lớn trên 114 phiên DEV **không** lặp lại), Ens_lean+ECM 2.110. Không biến thể nào đạt
+p < 0.05 vs Ensemble.
+
+Toàn bộ giai đoạn backtest (DEV+LOCK) với cờ bật: SJC h=1 U 0.916 → 0.905 (DM p vs Naive 0.0003 → 0.001);
+nhẫn h=1 U 0.914 → 0.893 nhưng DM p vs Naive 0.029 → 0.065 (vẫn dưới ngưỡng công bố 0.10, nên trạng thái
+"có lợi thế" không đổi). Kiểm tra: chạy `pipeline.backtest` với cờ bật cho nhẫn h=1 tái lập đúng cột Ens+ECM
+của thí nghiệm (sai khác 4e-16).
+
+## 4. Kết luận
+
+* `Ens+ECM` **đạt tiêu chí đã khai báo** (RMSE thấp hơn Ensemble trên DEV ở cả SJC và nhẫn h=1, và không thua trên
+  LOCK ở cả 6 tổ hợp mục tiêu × kỳ hạn), **nhưng** không có kiểm định DM nào vs Ensemble có ý nghĩa
+  (p = 0.27–0.74 trên LOCK; 0.02 chỉ ở 114 phiên DEV của nhẫn). Đây là cải thiện **nhỏ, chưa chứng minh được
+  thống kê**: RMSE giảm ~1–2%, MAE gần như không đổi (giảm chủ yếu ở các ngày sai lớn), độ chính xác chiều
+  không đổi (SJC 68.1% → 67.6%, nhẫn 71.7% → 71.7%).
+* Phát hiện chính có giá trị: một ECM 6 tham số (premium so với vàng USD + nhịp thế giới đêm qua) đạt gần như
+  toàn bộ lợi thế của ensemble ML ⇒ lợi thế h=1 là độ trễ truyền dẫn, không phải "tín hiệu ML" phức tạp.
+* Không làm được: thông tin giờ sáng (gần như không có giao dịch mới trước 06:30 VN), lọc đặc trưng, hurdle,
+  stacking, h=5/h=21 – không có cải thiện đáng tin cậy.
+
+**Áp dụng (nếu muốn):** merge nhánh, rồi đặt `USE_ECM = True` trong `src/vngold/config.py` (hoặc
+`VNGOLD_USE_ECM=1` trong `scripts/daily.sh`). Khuyến nghị theo dõi thêm 3–6 tháng (so ECM vs Ensemble trong
+predictions_log) trước khi coi là cải thiện thật.

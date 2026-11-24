@@ -93,3 +93,25 @@ def test_hourly_feature_uses_only_bars_closed_before_issue(tmp_path):
     assert np.isclose(x.iloc[0], np.log(101 / 100))
     x2 = A.hourly_feature(idx, tmp_path / "h.csv", strict=False)
     assert np.isclose(x2.iloc[0], np.log(150 / 100))
+
+
+def test_ecm_flag_default_off_and_pipeline_smoke():
+    """Cờ USE_ECM mặc định TẮT (production không đổi); khi bật, ECM chạy trọn backtest + dự báo cuối."""
+    from vngold import config
+    from vngold.pipeline import _prepare, backtest, build_models, final_forecast
+    assert config.USE_ECM is False
+    if not DATA.exists():
+        pytest.skip("chưa có dataset")
+    df = pd.read_csv(DATA, index_col=0, parse_dates=True)
+    ds, start = _prepare(df, "ring_sell")
+    off = [m.name for m in build_models("ring_sell", 1, False, df, ds)]
+    assert off == ["Naive", "LinearRegression", "XGBoost"]
+    on = build_models("ring_sell", 1, False, df, ds, use_ecm=True)
+    assert [m.name for m in on][-1] == "ECM"
+    models = [m for m in on if m.name != "XGBoost"]          # nhanh: bỏ XGBoost
+    wf, _, st, table = backtest(ds, start, 1, models, 250)
+    assert "ECM" in table.index and np.isfinite(table.loc["Ensemble", "RMSE"])
+    assert "ECM" in st.ewmse
+    fresh = [m for m in build_models("ring_sell", 1, False, df, ds, use_ecm=True) if m.name != "XGBoost"]
+    fc = final_forecast(ds, start, 1, fresh, st, len(ds.X) - 1)
+    assert "ECM" in fc["weights"] and abs(fc["ensemble"]) < 0.1

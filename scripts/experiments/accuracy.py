@@ -374,6 +374,13 @@ def stage_locked(args):
             t = table(wf, cols, "locked", h)
             prod = load_prod(target, h)
             t.loc["Ensemble", "Cov90"], t.loc["Ensemble", "Cov80"] = coverage(prod, period_mask(prod, "locked"))
+            if "ECM" in wf and "Ens+ECM" in t.index:   # khoảng tin cậy của ứng viên (cùng lớp ACI)
+                on, _ = run_online(wf, prod_models(target) + ["ECM"], h)
+                t.loc["Ens+ECM", "Cov90"], t.loc["Ens+ECM", "Cov80"] = coverage(on, period_mask(on, "locked"))
+                w = on[period_mask(on, "locked") & on.lo.notna()]
+                t.loc["Ens+ECM", "Width90"] = float((w.hi - w.lo).mean())
+                w = prod[period_mask(prod, "locked") & prod.lo.notna()]
+                t.loc["Ensemble", "Width90"] = float((w.hi - w.lo).mean())
             print(f"== {target} h={h} (LOCKED)")
             print(t.round(4).to_string())
             res[f"{target}_h{h}"] = t.round(5).reset_index().to_dict("records")
