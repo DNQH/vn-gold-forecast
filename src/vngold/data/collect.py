@@ -215,7 +215,8 @@ def fetch_giavang_org(start: str = START_DATE, end: str | None = None,
                 done_file.write_text("\n".join(sorted(done)))
     ticks = pd.concat([ticks, pd.DataFrame(new_rows)], ignore_index=True)
     ticks["ts"] = pd.to_datetime(ticks["ts"])
-    ticks = ticks.drop_duplicates(["ts", "type"]).sort_values("ts")
+    # sắp xếp ỔN ĐỊNH: các dòng cùng giờ giữ nguyên thứ tự cũ -> file không bị xáo trộn (diff git nhỏ) mỗi lần chạy
+    ticks = ticks.drop_duplicates(["ts", "type"]).sort_values("ts", kind="stable")
     ticks.to_csv(cache, index=False)
     done_file.write_text("\n".join(sorted(done)))
     if verbose:
