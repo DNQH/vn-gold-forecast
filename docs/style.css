@@ -34,7 +34,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #1d4ed8;outline-offset:2p
 .grid{display:grid;gap:14px;grid-template-columns:1fr}
 @media(min-width:640px){.grid{grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}.grid.two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
 .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04);min-width:0;overflow-wrap:anywhere}
-.card.past{background:#f3f4f6;border-top:6px solid #9ca3af;color:var(--muted)}
+.card.past{background:#f3f4f6;border-top:6px solid #9ca3af;color:#4b5563}
 .when{font-size:1.05rem;font-weight:700}
 .date{font-size:.8rem;color:var(--muted);margin-bottom:6px}
 .icon{font-size:2.6rem;line-height:1.15;font-weight:700}
@@ -64,3 +64,4 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-si
 footer a{color:#7a4f0e;display:inline-block;min-height:48px;line-height:48px}
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}.gold{color:var(--gold)}
 .chart svg{max-width:640px;margin:0 auto}
+.card.past .sub,.card.past .date{color:#4b5563}

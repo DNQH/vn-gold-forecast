@@ -49,11 +49,11 @@
     return WEEKDAYS[wd(pd(target))] + " " + ddmm(target);
   }
 
-  // ---------- độ mới của dữ liệu (cổng của freshness() trong app/ui.py)
+  // ---------- độ mới của dữ liệu (cổng của freshness() trong src/vngold/plain.py)
+  // ngày làm việc (T2–T6) gần nhất NHỎ HƠN d: T7, CN, T2 -> thứ Sáu trước đó
   function prevBday(d) {
     d = new Date(d.getTime());
-    while (wd(d) >= 5) d.setUTCDate(d.getUTCDate() - 1);   // roll backward
-    do { d.setUTCDate(d.getUTCDate() - 1); } while (wd(d) >= 5); // lùi 1 ngày làm việc
+    do { d.setUTCDate(d.getUTCDate() - 1); } while (wd(d) >= 5);
     return d;
   }
   function freshness(asOf, now) {
@@ -218,8 +218,8 @@
 
     if (fr.stale || T.source_stale) {
       var stop = T.source_stale && !fr.stale ? T.last_observed : D.as_of;
-      notes.push('<div class="banner">⚠️ Dự đoán chưa được cập nhật – số liệu dừng ở ' + vnDate(stop) +
-        ". Đừng dựa vào phần dự đoán bên dưới cho tới khi phần mềm cập nhật.</div>");
+      notes.push('<div class="banner">⚠️ Chưa có số liệu mới – số liệu dừng ở ' + vnDate(stop) +
+        " (có thể do ngày nghỉ lễ, Tết hoặc lỗi cập nhật). Đừng dựa vào phần dự đoán bên dưới cho tới khi có số liệu mới.</div>");
     }
     if (state.fromCache || state.loadFailed) notes.push('<div class="info">📴 Đang xem dữ liệu đã lưu trên máy (chưa có mạng hoặc chưa tải được bản mới).</div>');
     if (state.liveFailed) notes.push('<div class="info">Chưa lấy được giá đang niêm yết – đang hiện giá chốt gần nhất.</div>');
@@ -245,6 +245,8 @@
       ' <span class="unit">triệu đồng / lượng</span></div><div class="chg">' + chgHtml + "</div></div>" +
       '<div><div class="lbl">Giá MUA vào (tiệm mua lại của mình)</div><div class="big s">' + vn(buy) +
       ' <span class="unit">triệu đồng / lượng</span></div><div class="when-note">' + esc(timeTxt) + "</div></div></section>";
+    if (tkey === "ring_sell")
+      h += '<p class="cap">Giá vàng nhẫn ở đây là giá <b>nhẫn trơn 999.9 của PNJ</b>. Tiệm khác (SJC, DOJI, Bảo Tín…) có thể chênh lệch vài trăm nghìn – khi so, hãy so với bảng giá PNJ.</p>';
 
     h += "<h2>Giá vàng sắp tới sẽ thế nào?</h2><div class=\"muted\">Tính từ giá chốt <b>" + vnDate(lc.date) + "</b>: <b>" + vn(T.last_price) +
       "</b> triệu/lượng (giá bán ra).</div>";
@@ -279,14 +281,14 @@
         '<div class="cap"><span class="up">●</span> đoán đúng tăng/giảm &nbsp; <span class="down">●</span> đoán sai &nbsp; <span style="color:#9ca3af">●</span> giá đứng yên (không tính)</div>';
       if (s.n_dir) h += '<div class="stat">Đoán đúng tăng hay giảm: <b>' + s.n_ok + "/" + s.n_dir + "</b> lần</div>";
       h += '<div class="stat">Lệch trung bình: <b>' + vn(s.mae) + " triệu</b> mỗi lượng (khoảng " + vn(s.mape) + "% giá)</div>";
-      if (s.inband_n) h += '<div class="stat">Giá thật nằm trong khoảng dự đoán: <b>' + s.inband_ok + "/" + s.inband_n + "</b> lần</div>";
+      if (s.inband_n) h += '<div class="stat">Giá thật nằm trong khoảng “nhiều khả năng”: <b>' + s.inband_ok + "/" + s.inband_n + "</b> lần</div>";
       h += '<p class="cap">Mỗi lần đoán chỉ dùng thông tin có trước ngày đó, giống hệt như khi phần mềm chạy thật mỗi sáng.</p>';
     }
 
     h += "<h2>Điều nên biết trước khi mua bán</h2>" +
       '<div class="note">⚠️ Đây là <b>dự đoán để tham khảo</b>, dựa trên số liệu trong quá khứ – <b>không phải lời khuyên mua hay bán</b>. Giá vàng có thể thay đổi bất ngờ vì tin tức trong nước và thế giới.</div>';
     h += '<details><summary>❓ Câu hỏi thường gặp</summary>' +
-      "<p><b>Phần mềm lấy giá ở đâu?</b> Giá vàng trong nước lấy từ CafeF và giavang.org; giá vàng thế giới, tỷ giá đô la lấy từ Yahoo Finance và Cục Dự trữ Liên bang Mỹ (FRED).</p>" +
+      "<p><b>Phần mềm lấy giá ở đâu?</b> Giá vàng trong nước lấy từ CafeF và giavang.org: vàng miếng là giá niêm yết của công ty SJC, vàng nhẫn là giá <b>nhẫn trơn 999.9 của PNJ</b>. Giá vàng thế giới, tỷ giá đô la lấy từ Yahoo Finance và Cục Dự trữ Liên bang Mỹ (FRED).</p>" +
       "<p><b>Bao lâu cập nhật một lần?</b> Mỗi sáng khoảng 7 giờ (Thứ Ba – Thứ Bảy), sau khi thị trường Mỹ đóng cửa đêm trước. Giá đang niêm yết trên trang này được làm mới mỗi 5 phút.</p>" +
       "<p><b>Vì sao “1 tuần” và “1 tháng” lại ghi “Khó đoán”?</b> Vì khi kiểm tra trên nhiều năm dữ liệu, phần mềm đoán chiều tăng/giảm ở các mốc này không tốt hơn việc coi như giá giữ nguyên. Thay vì đoán bừa, phần mềm nói thật là chưa đoán được và chỉ cho biết khoảng giá có thể xảy ra.</p>" +
       "<p><b>Vì sao 3 tháng, 5 tháng khoảng giá lại rộng như vậy?</b> Giá vàng mấy năm qua lên xuống rất mạnh (có năm tăng hơn 50%). Khoảng rộng là cách trung thực để nói: xa như vậy thì không ai biết chắc.</p></details>";
@@ -348,7 +350,19 @@
       if (document.visibilityState === "visible") { fetchLive(); render(); }
     });
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js", {scope: "./"}).catch(function () {}); });
+      // Khi có bản ứng dụng mới (sw.js đổi), service worker mới tự kích hoạt -> tải lại trang một lần để dùng bản mới.
+      // Lần cài đầu tiên (chưa có controller) thì không tải lại.
+      var hadController = !!navigator.serviceWorker.controller, reloading = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (!hadController || reloading) return;
+        reloading = true; location.reload();
+      });
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js", {scope: "./", updateViaCache: "none"}).then(function (reg) {
+          // điện thoại để app mở lâu ngày: kiểm tra bản mới mỗi khi quay lại app
+          document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") reg.update().catch(function () {}); });
+        }).catch(function () {});
+      });
     }
   }
   init();
