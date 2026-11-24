@@ -43,8 +43,8 @@ st.markdown("<div class='pro-title'>Vietnam Gold Market Intelligence</div>"
 FR = freshness(fc, df)
 if FR["stale"]:
     st.warning(f"⚠️ Dự báo chưa được cập nhật: số liệu dừng ở {vn_date(FR['as_of'])}, trong khi dữ liệu đáng lẽ phải tới "
-               f"{vn_date(FR['expected'])} (chậm {FR['days_behind']} ngày làm việc). Đừng dựa vào dự báo bên dưới "
-               "cho tới khi pipeline chạy lại.")
+               f"{vn_date(FR['expected'])} (chậm {FR['days_behind']} ngày làm việc; có thể do thị trường trong nước nghỉ lễ/Tết "
+               "hoặc pipeline lỗi). Đừng dựa vào dự báo bên dưới cho tới khi có số liệu mới.")
 for _t, _flag in FR["source_stale"].items():
     if _flag:
         st.warning(f"⚠️ Nguồn giá {TARGET_SHORT.get(_t, _t)} ngừng cập nhật: giá quan sát thật cuối cùng là "

@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from vngold.config import DATA_PROCESSED
+from vngold.config import DATA_PROCESSED, vn_now
 
 BUCKETS = [0, 0.3, 0.45, 0.55, 0.7, 1.0001]
 BUCKET_NAMES = ["strong_down", "lean_down", "unclear", "lean_up", "strong_up"]
@@ -23,16 +23,78 @@ def vn(v, d: int = 1) -> str:
 
 
 def calibration_table(target: str, h: int, proc_dir=DATA_PROCESSED) -> pd.DataFrame:
-    """Khi phần mềm nói P(tăng) ở mức X, giá tăng thật bao nhiêu lần? (walk-forward)."""
+    """Khi phần mềm nói P(tăng) ở mức X, giá tăng thật bao nhiêu lần? (walk-forward).
+
+    n/up: chỉ tính các phiên giá có thay đổi (dùng cho biểu đồ độ tin cậy của P(tăng)).
+    n_all/up_all/down_all: tính MỌI phiên có kết quả, kể cả phiên giá đứng yên – dùng cho câu
+    "đúng X/10 lần" trên giao diện Dễ hiểu (nói "tăng" mà giá đứng yên thì không tính là đúng).
+    """
     f = proc_dir / f"backtest_{target}_h{h}.csv"
     if not f.exists():
         return pd.DataFrame()
     wf = pd.read_csv(f, index_col=0, parse_dates=True)
-    w = wf[wf.p_up.notna() & wf.actual.notna() & (wf.actual != 0)]
-    bucket = pd.cut(w.p_up, BUCKETS, labels=BUCKET_NAMES, include_lowest=True)
+    a = wf[wf.p_up.notna() & wf.actual.notna()]
+    ball = pd.cut(a.p_up, BUCKETS, labels=BUCKET_NAMES, include_lowest=True)
+    w = a[a.actual != 0]
+    bucket = ball[w.index]
     up = w.actual > 0
     return pd.DataFrame({"n": up.groupby(bucket, observed=False).size(),
-                         "up": up.groupby(bucket, observed=False).mean()})
+                         "up": up.groupby(bucket, observed=False).mean(),
+                         "n_all": a.actual.groupby(ball, observed=False).size(),
+                         "up_all": (a.actual > 0).groupby(ball, observed=False).mean(),
+                         "down_all": (a.actual < 0).groupby(ball, observed=False).mean()})
+
+
+def bucket_hit_rate(cal: pd.DataFrame, bucket: str, min_n: int = 20):
+    """Tỷ lệ "nói tăng/giảm thì đúng" cho nhóm xác suất `bucket` -> (tỷ lệ, số lần) hoặc None.
+
+    Phiên giá đứng yên được tính là KHÔNG đúng (thận trọng). Nhóm "unclear" không có câu này.
+    """
+    if not len(cal) or bucket not in cal.index or bucket == "unclear" or "n_all" not in cal.columns:
+        return None
+    n = int(cal.loc[bucket, "n_all"])
+    if n < min_n:
+        return None
+    rate = cal.loc[bucket, "up_all"] if bucket in ("strong_up", "lean_up") else cal.loc[bucket, "down_all"]
+    return float(rate), n
+
+
+# ------------------------------------------------------------------ độ mới của dữ liệu (dùng chung Streamlit + PWA)
+RUN_HOUR_MIN = (7, 30)  # pipeline chạy ~07:00 (T3–T7); sau 07:30 mới coi là "đáng lẽ đã có dữ liệu mới"
+
+
+def prev_bday(d) -> pd.Timestamp:
+    """Ngày làm việc (T2–T6) gần nhất NHỎ HƠN ngày của d (T7/CN/T2 -> thứ Sáu trước đó)."""
+    return pd.Timestamp(np.busday_offset(pd.Timestamp(d).normalize().date(), -1, roll="forward"))
+
+
+def freshness(fc: dict, df: pd.DataFrame, now=None) -> dict:
+    """Kiểm tra dữ liệu/dự báo có cũ không (hàm thuần; `now` truyền vào để kiểm thử).
+
+    expected = ngày làm việc gần nhất trước hôm nay (T7, CN, T2 -> thứ Sáu). Pipeline chỉ chạy T3–T7 lúc ~07:00,
+    nên nếu đang là T3–T7 và chưa tới 07:30 thì chưa trách được lần chạy sáng nay -> lùi thêm một ngày làm việc.
+    source_stale[target]: ngày `{target}_observed==1` cuối cùng cách as_of hơn 2 ngày làm việc
+    (nguồn giá ngừng cập nhật trong khi pipeline vẫn chạy).
+    Lưu ý: dịp nghỉ dài của thị trường trong nước (Tết…) cũng làm cờ bật – giao diện dùng lời lẽ trung tính.
+    """
+    now = pd.Timestamp(now) if now is not None else vn_now()
+    as_of = pd.Timestamp(fc["as_of"]).normalize()
+    expected = prev_bday(now)
+    if now.weekday() in (1, 2, 3, 4, 5) and (now.hour, now.minute) < RUN_HOUR_MIN:
+        expected = prev_bday(expected)
+    stale = as_of < expected
+    days_behind = int(np.busday_count(as_of.date(), expected.date())) if stale else 0
+    last_obs, source_stale = {}, {}
+    for t in fc.get("targets", {}):
+        col = f"{t}_observed"
+        if col in df.columns:
+            idx = df.index[df[col] == 1]
+            if len(idx):
+                last = idx.max().normalize()
+                last_obs[t] = last
+                source_stale[t] = bool(np.busday_count(last.date(), as_of.date()) > 2)
+    return {"stale": bool(stale), "days_behind": days_behind, "as_of": as_of, "expected": expected,
+            "source_stale": source_stale, "last_observed": last_obs, "now": now}
 
 
 def plain_reason(f: str, v, c: float) -> str | None:

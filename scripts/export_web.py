@@ -1,13 +1,13 @@
 """Xuất dữ liệu cho ứng dụng điện thoại (PWA): docs/data/latest.json.
 
-Dùng đúng logic của trang Streamlit "Dễ hiểu" (app/ui.py + src/vngold) nhưng không cần chạy Streamlit và không cần mạng.
+Dùng đúng logic của trang Streamlit "Dễ hiểu" (các hàm thuần trong src/vngold/plain.py) nhưng KHÔNG import
+Streamlit (tránh cảnh báo "No runtime found") và không cần mạng.
 Cách dùng: python scripts/export_web.py [--out docs/data]
 """
 from __future__ import annotations
 
 import argparse
 import json
-import logging
 import sys
 from pathlib import Path
 
@@ -15,16 +15,13 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-for p in (ROOT / "app", ROOT / "src"):
-    if str(p) not in sys.path:
-        sys.path.insert(0, str(p))
-logging.getLogger("streamlit").setLevel(logging.ERROR)
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
 
-from ui import bucket_of, freshness  # noqa: E402
-from vngold.plain import calibration_table, plain_reason  # noqa: E402
+from vngold.plain import bucket_hit_rate, bucket_of, calibration_table, freshness, plain_reason  # noqa: E402
 from vngold.tracking import historical_tracking  # noqa: E402
 
-TARGETS = {"sjc_sell": ("Vàng miếng SJC", "sjc_buy"), "ring_sell": ("Vàng nhẫn 9999", "ring_buy")}
+TARGETS = {"sjc_sell": ("Vàng miếng SJC", "sjc_buy"), "ring_sell": ("Vàng nhẫn 9999 (PNJ)", "ring_buy")}
 SHORT = ("1", "5", "21")
 LONG = ("63", "105")
 
@@ -64,11 +61,9 @@ def build(proc_dir: Path, now=None) -> dict:
             if item["has_edge"]:
                 b = bucket_of(r["p_up"])
                 item["bucket"] = str(b)
-                cal = calibration_table(tkey, int(h), proc_dir)
-                if len(cal) and b in cal.index and cal.loc[b, "n"] >= 20 and b != "unclear":
-                    up_side = b in ("strong_up", "lean_up")
-                    rate = cal.loc[b, "up"] if up_side else 1 - cal.loc[b, "up"]
-                    item["hit"] = {"rate": _r(rate, 4), "n": int(cal.loc[b, "n"])}
+                hr = bucket_hit_rate(calibration_table(tkey, int(h), proc_dir), b)
+                if hr:
+                    item["hit"] = {"rate": _r(hr[0], 4), "n": hr[1]}
             t["horizons"][h] = item
         o = T.get("outlook") or {}
         for h in LONG:
@@ -91,10 +86,10 @@ def build(proc_dir: Path, now=None) -> dict:
         if len(tr):
             done = tr[tr.actual.notna() & ~tr.provisional.astype(bool)].sort_values("target_date").tail(30)
             valid = done.dir_ok.dropna()
-            inband = pd.to_numeric(done.in_band, errors="coerce").dropna()
+            inband = pd.to_numeric(done.in_band80, errors="coerce").dropna()  # khoảng 80% như trên thẻ
             t["track"] = [{"target_date": _d(r.target_date),
                            "dir_ok": None if pd.isna(r.dir_ok) else int(r.dir_ok),
-                           "in_band": None if pd.isna(r.in_band) else int(r.in_band)} for r in done.itertuples()]
+                           "in_band": None if pd.isna(r.in_band80) else int(r.in_band80)} for r in done.itertuples()]
             t["stats"] = {"n": int(len(done)), "n_ok": int(valid.sum()), "n_dir": int(len(valid)),
                           "mae": _r(done.error.abs().mean()), "mape": _r(done.abs_pct.mean()),
                           "inband_ok": int(inband.sum()), "inband_n": int(len(inband))}

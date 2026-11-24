@@ -297,11 +297,14 @@ def run(collect: bool = True, include_lstm: bool = True, do_ablation: bool = Tru
         for h, r in tinfo["horizons"].items():
             for name, price, lo, hi in [("Ensemble", r["pred_price"], r["lo90"], r["hi90"])] + \
                     [(m, v["price"], np.nan, np.nan) for m, v in r["models"].items()]:
+                ens = name == "Ensemble"
                 rows.append({"target": target, "as_of": results["as_of"], "h": int(h),
                              "target_date": r["target_date"], "model": name,
                              "price_at_issue": tinfo["last_price"], "pred_price": price,
-                             "lo": lo, "hi": hi, "p_up": r["p_up"] if name == "Ensemble" else np.nan,
-                             "issued_at": results["generated_at"]})
+                             "lo": lo, "hi": hi, "p_up": r["p_up"] if ens else np.nan,
+                             "issued_at": results["generated_at"],
+                             "lo80": r.get("lo80", np.nan) if ens else np.nan,
+                             "hi80": r.get("hi80", np.nan) if ens else np.nan})
     append_predictions(rows)
     log = score_log(df)
     done = log[log["actual_price"].notna()] if len(log) else log

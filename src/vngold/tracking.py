@@ -89,6 +89,8 @@ def historical_tracking(target: str, h: int, lock_date: str | None = None,
         "issued": idx, "target_date": tdates.to_numpy(), "price_issue": p0.to_numpy(),
         "pred": (p0 * np.exp(wf["Ensemble"])).to_numpy(),
         "lo": (p0 * np.exp(wf["lo"])).to_numpy(), "hi": (p0 * np.exp(wf["hi"])).to_numpy(),
+        "lo80": (p0 * np.exp(wf["lo80"])).to_numpy() if "lo80" in wf else np.nan,
+        "hi80": (p0 * np.exp(wf["hi80"])).to_numpy() if "hi80" in wf else np.nan,
         "actual": (p0 * np.exp(wf["actual"])).to_numpy(),
     })
     bt["source"] = "Backtest"
@@ -106,6 +108,8 @@ def historical_tracking(target: str, h: int, lock_date: str | None = None,
                 "issued": log["as_of"], "target_date": log["target_date"],
                 "price_issue": log["price_at_issue"], "pred": log["pred_price"],
                 "lo": log["lo"], "hi": log["hi"],
+                # khoảng 80% chỉ được ghi vào nhật ký từ 11/2026; bản ghi cũ để trống (không đoán bù)
+                "lo80": log["lo80"] if "lo80" in log else np.nan, "hi80": log["hi80"] if "hi80" in log else np.nan,
                 "actual": log["actual_price"] if "actual_price" in log else np.nan,
                 "source": "Live"})
             live["provisional"] = False
@@ -129,6 +133,9 @@ def historical_tracking(target: str, h: int, lock_date: str | None = None,
     out["closer_than_naive"] = np.where(moved, out["abs_pct"] < out["naive_abs_pct"], np.nan)
     out["in_band"] = np.where(out["actual"].notna() & out["lo"].notna(),
                               (out["actual"] >= out["lo"]) & (out["actual"] <= out["hi"]), np.nan)
+    # in_band: khoảng 90% (bản Chuyên sâu) ; in_band80: khoảng 80% "nhiều khả năng" (bản Dễ hiểu, ứng dụng điện thoại)
+    out["in_band80"] = np.where(out["actual"].notna() & out["lo80"].notna(),
+                                (out["actual"] >= out["lo80"]) & (out["actual"] <= out["hi80"]), np.nan)
     d_pred = np.sign(out["pred"] - out["price_issue"])
     d_true = np.sign(out["actual"] - out["price_issue"])
     out["dir_ok"] = np.where(out["actual"].notna() & (d_pred != 0) & (d_true != 0),

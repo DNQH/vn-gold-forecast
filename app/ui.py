@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -15,13 +13,15 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 PROC = ROOT / "data" / "processed"
 
-from vngold.plain import BUCKETS, BUCKET_NAMES, bucket_of, calibration_table, vn  # noqa: E402,F401
+from vngold.config import VN_TZ, vn_now  # noqa: E402,F401
+from vngold.plain import (BUCKETS, BUCKET_NAMES, RUN_HOUR_MIN, bucket_hit_rate, bucket_of,  # noqa: E402,F401
+                          calibration_table, freshness, prev_bday, vn)
 
 # Bảng màu thống nhất
 INK, MUTED, LINE = "#1f2937", "#6b7280", "#e5e7eb"
 UP, DOWN, FLAT = "#15803d", "#b91c1c", "#6b7280"
 GOLD, NAVY, BLUE = "#b7791f", "#1e3a5f", "#2563eb"
-TARGET_SHORT = {"sjc_sell": "Vàng miếng SJC", "ring_sell": "Vàng nhẫn 9999"}
+TARGET_SHORT = {"sjc_sell": "Vàng miếng SJC", "ring_sell": "Vàng nhẫn 9999 (PNJ)"}
 WEEKDAYS = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
 
 
@@ -71,7 +71,7 @@ def vn_date(ts, weekday: bool = True) -> str:
 def when_label(target_date, today=None) -> str:
     """Nhãn thân thiện cho ngày đích: 'Cuối ngày hôm nay', 'Ngày mai', 'Thứ Sáu 27/11'."""
     t = pd.Timestamp(target_date).normalize()
-    today = pd.Timestamp(today or pd.Timestamp.now()).normalize()
+    today = pd.Timestamp(today if today is not None else vn_now()).normalize()  # giờ VN, không theo máy chủ
     d = (t - today).days
     if d == 0:
         return "Cuối ngày hôm nay"
@@ -80,51 +80,7 @@ def when_label(target_date, today=None) -> str:
     return f"{WEEKDAYS[t.weekday()]} {t:%d/%m}"
 
 
-# ------------------------------------------------------------------ độ mới của dữ liệu
-VN_TZ = "Asia/Ho_Chi_Minh"
-RUN_HOUR_MIN = (7, 30)  # pipeline chạy ~07:00 (T3–T7); sau 07:30 mới coi là "đáng lẽ đã có dữ liệu mới"
-
-
-def vn_now() -> pd.Timestamp:
-    """Giờ Việt Nam hiện tại (naive). Biến môi trường VNGOLD_NOW='YYYY-MM-DD HH:MM' dùng để kiểm thử."""
-    env = os.environ.get("VNGOLD_NOW")
-    if env:
-        return pd.Timestamp(env)
-    return pd.Timestamp.now(tz=VN_TZ).tz_localize(None)
-
-
-def _prev_bday(d: pd.Timestamp) -> pd.Timestamp:
-    """Ngày làm việc (T2–T6) gần nhất NHỎ HƠN d."""
-    return pd.Timestamp(np.busday_offset(d.normalize().date(), -1, roll="backward"))
-
-
-def freshness(fc: dict, df: pd.DataFrame, now=None) -> dict:
-    """Kiểm tra dữ liệu/dự báo có cũ không (hàm thuần; `now` truyền vào để kiểm thử).
-
-    expected = ngày làm việc gần nhất trước hôm nay. Pipeline chỉ chạy T3–T7 lúc ~07:00, nên nếu đang là
-    T3–T7 và chưa tới 07:30 thì chưa trách được lần chạy sáng nay -> lùi thêm một ngày làm việc.
-    (T2/CN không có lần chạy nào nên không lùi: dữ liệu mới nhất đáng lẽ là thứ Sáu.)
-    source_stale[target]: ngày `{target}_observed==1` cuối cùng cách as_of hơn 2 ngày làm việc
-    (nguồn giá ngừng cập nhật trong khi pipeline vẫn chạy).
-    """
-    now = pd.Timestamp(now) if now is not None else vn_now()
-    as_of = pd.Timestamp(fc["as_of"]).normalize()
-    expected = _prev_bday(now)
-    if now.weekday() in (1, 2, 3, 4, 5) and (now.hour, now.minute) < RUN_HOUR_MIN:
-        expected = _prev_bday(expected)
-    stale = as_of < expected
-    days_behind = int(np.busday_count(as_of.date(), expected.date())) if stale else 0
-    last_obs, source_stale = {}, {}
-    for t in fc.get("targets", {}):
-        col = f"{t}_observed"
-        if col in df.columns:
-            idx = df.index[df[col] == 1]
-            if len(idx):
-                last = idx.max().normalize()
-                last_obs[t] = last
-                source_stale[t] = bool(np.busday_count(last.date(), as_of.date()) > 2)
-    return {"stale": bool(stale), "days_behind": days_behind, "as_of": as_of, "expected": expected,
-            "source_stale": source_stale, "last_observed": last_obs, "now": now}
+# độ mới của dữ liệu: freshness()/vn_now() nằm ở vngold.plain / vngold.config (dùng chung với PWA)
 
 
 def ten(x: float) -> int:

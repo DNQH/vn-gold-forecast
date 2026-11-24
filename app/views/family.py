@@ -8,7 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from ui import (WEEKDAYS, DOWN, FLAT, GOLD, MUTED, PROC, TARGET_SHORT, UP, bucket_of, calibration, chart, inject_css,
+from ui import (WEEKDAYS, DOWN, FLAT, GOLD, MUTED, PROC, TARGET_SHORT, UP, bucket_hit_rate, bucket_of, calibration,
+                chart, inject_css,
                 freshness, live_prices, load, outlook, plotly_layout, ten, tracking, vn, vn_date, vn_now,
                 when_label)
 from vngold.plain import plain_reason  # noqa: E402  (src/ được ui.py thêm vào sys.path)
@@ -77,8 +78,9 @@ FR = freshness(fc, df)
 TODAY = vn_now().normalize()
 if FR["stale"] or FR["source_stale"].get(tkey):
     stop_day = FR["last_observed"][tkey] if FR["source_stale"].get(tkey) and not FR["stale"] else FR["as_of"]
-    st.markdown(f"<div class='stale-banner'>⚠️ Dự đoán chưa được cập nhật – số liệu dừng ở {vn_date(stop_day)}. "
-                "Đừng dựa vào phần dự đoán bên dưới cho tới khi phần mềm cập nhật.</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='stale-banner'>⚠️ Chưa có số liệu mới – số liệu dừng ở {vn_date(stop_day)} "
+                "(có thể do ngày nghỉ lễ, Tết hoặc lỗi cập nhật). "
+                "Đừng dựa vào phần dự đoán bên dưới cho tới khi có số liệu mới.</div>", unsafe_allow_html=True)
 buy_col = "sjc_buy" if tkey == "sjc_sell" else "ring_buy"
 
 # ------------------------------------------------------------------ giá hiện tại
@@ -111,6 +113,9 @@ st.markdown(f"""
        <div class="big" style="font-size:2rem">{vn(buy)} <span class="unit">triệu đồng / lượng</span></div>
        <div class="time">{time_txt}</div></div>
 </div>""", unsafe_allow_html=True)
+if tkey == "ring_sell":
+    st.caption("Giá vàng nhẫn ở đây là giá nhẫn trơn 999.9 của PNJ. Tiệm khác (SJC, DOJI, Bảo Tín…) có thể chênh lệch "
+               "vài trăm nghìn – khi so, hãy so với bảng giá PNJ.")
 
 # ------------------------------------------------------------------ thẻ dự báo
 st.markdown("## Giá vàng sắp tới sẽ thế nào?")
@@ -163,12 +168,11 @@ def short_card(h: str, r: dict) -> str:
                 extra += (f"<div class='fc-warn'>Mức thay đổi này ({vn(abs(d))} triệu) nhỏ hơn chênh lệch mua–bán "
                           f"({vn(close_spread)} triệu): không đáng mua bán chỉ vì dự đoán này.</div>")
     move = f"{'tăng' if d > 0 else 'giảm'} khoảng {vn(abs(d))} triệu" if abs(d) >= 0.05 else "gần như không đổi"
-    cal = calibration(tkey, int(h))
+    hr = bucket_hit_rate(calibration(tkey, int(h)), b) if (up_side or down_side) else None
     hist = ""
-    if len(cal) and b in cal.index and cal.loc[b, "n"] >= 20 and (up_side or down_side):
-        hit = cal.loc[b, "up"] if up_side else 1 - cal.loc[b, "up"]
+    if hr:
         word = "tăng" if up_side else "giảm"
-        hist = f"<div class='fc-hist'>Những lần trước phần mềm nói “{word}” như vậy:<br>đúng <b>{ten(hit)}/10</b> lần</div>"
+        hist = (f"<div class='fc-hist'>Những lần trước phần mềm nói “{word}” như vậy:<br>đúng <b>{ten(hr[0])}/10</b> lần</div>")
     return f"""<div class="fc-card" style="border-top:6px solid {color}">
 <div class="fc-when">{when}</div><div class="fc-date">{date}</div>
 <div class="fc-icon" style="color:{color}">{icon}</div>
@@ -251,7 +255,7 @@ if len(tr):
     done = tr[tr.actual.notna() & ~tr.provisional.astype(bool)].sort_values("target_date").tail(30)
     valid = done.dir_ok.dropna()
     n_ok, n_dir = int(valid.sum()), int(len(valid))
-    inband = pd.to_numeric(done.in_band, errors="coerce").dropna()
+    inband = pd.to_numeric(done.in_band80, errors="coerce").dropna()  # cùng khoảng 80% như trên thẻ
     mae = done.error.abs().mean()
     mape = done.abs_pct.mean()
     c1, c2 = st.columns([3, 2], gap="large")
@@ -271,7 +275,7 @@ if len(tr):
         st.markdown(f"<div class='stat'>Lệch trung bình: <b>{vn(mae)} triệu</b> mỗi lượng "
                     f"(khoảng {vn(mape)}% giá)</div>", unsafe_allow_html=True)
         if len(inband):
-            st.markdown(f"<div class='stat'>Giá thật nằm trong khoảng dự đoán: <b>{int(inband.sum())}/{len(inband)}</b> lần</div>",
+            st.markdown(f"<div class='stat'>Giá thật nằm trong khoảng “nhiều khả năng”: <b>{int(inband.sum())}/{len(inband)}</b> lần</div>",
                         unsafe_allow_html=True)
     pend = tr[(tr.source == "Live") & tr.provisional.astype(bool) & tr.actual.notna()]
     if len(pend):
@@ -290,8 +294,9 @@ Giá vàng có thể thay đổi bất ngờ vì tin tức trong nước và th�
 
 with st.expander("❓ Câu hỏi thường gặp"):
     st.markdown("""
-**Phần mềm lấy giá ở đâu?** Giá vàng trong nước lấy từ CafeF và giavang.org; giá vàng thế giới, tỷ giá đô la
-lấy từ Yahoo Finance và Cục Dự trữ Liên bang Mỹ (FRED).
+**Phần mềm lấy giá ở đâu?** Giá vàng trong nước lấy từ CafeF và giavang.org: vàng miếng là giá niêm yết của
+công ty SJC, vàng nhẫn là giá **nhẫn trơn 999.9 của PNJ**. Giá vàng thế giới, tỷ giá đô la lấy từ Yahoo Finance và
+Cục Dự trữ Liên bang Mỹ (FRED).
 
 **Bao lâu cập nhật một lần?** Mỗi sáng khoảng 7 giờ (Thứ Ba – Thứ Bảy), sau khi thị trường Mỹ đóng cửa đêm trước.
 Giá đang niêm yết trên trang này được làm mới mỗi 5 phút.
