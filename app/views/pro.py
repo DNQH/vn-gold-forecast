@@ -8,8 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from ui import (GOLD, INK, MUTED, NAVY, PROC, TARGET_SHORT, chart, inject_css, live_prices, load, outlook,
-                tracking, vn_date)
+from ui import (GOLD, INK, MUTED, NAVY, PROC, TARGET_SHORT, chart, freshness, inject_css, live_prices, load,
+                outlook, tracking, vn_date)
 from vngold.explain import LABELS
 
 RED, BLUE, GREY, GREEN = "#b91c1c", "#2563eb", "#64748b", "#15803d"
@@ -39,6 +39,17 @@ st.markdown("<div class='pro-title'>Vietnam Gold Market Intelligence</div>"
             f"<div class='pro-sub'>Dự báo định lượng giá vàng SJC &amp; nhẫn 9999 · dữ liệu tới "
             f"<b>{vn_date(fc['as_of'])}</b> · cập nhật {pd.Timestamp(fc['generated_at']):%H:%M %d/%m/%Y} · "
             "công cụ nghiên cứu, không phải khuyến nghị đầu tư</div>", unsafe_allow_html=True)
+
+FR = freshness(fc, df)
+if FR["stale"]:
+    st.warning(f"⚠️ Dự báo chưa được cập nhật: số liệu dừng ở {vn_date(FR['as_of'])}, trong khi dữ liệu đáng lẽ phải tới "
+               f"{vn_date(FR['expected'])} (chậm {FR['days_behind']} ngày làm việc). Đừng dựa vào dự báo bên dưới "
+               "cho tới khi pipeline chạy lại.")
+for _t, _flag in FR["source_stale"].items():
+    if _flag:
+        st.warning(f"⚠️ Nguồn giá {TARGET_SHORT.get(_t, _t)} ngừng cập nhật: giá quan sát thật cuối cùng là "
+                   f"{vn_date(FR['last_observed'][_t])}, trong khi dữ liệu tới {vn_date(FR['as_of'])} "
+                   "(các ngày sau đó là giá điền tiếp, không phải giá thật).")
 
 c = st.columns(5)
 c[0].metric("SJC bán ra (tr/lượng)", f"{fmt(last.sjc_sell)}", f"{fmt(last.sjc_sell - prev.sjc_sell)}", border=True)

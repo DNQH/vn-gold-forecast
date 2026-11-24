@@ -8,8 +8,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from ui import (DOWN, FLAT, GOLD, MUTED, PROC, TARGET_SHORT, UP, bucket_of, calibration, chart, inject_css,
-                live_prices, load, outlook, plotly_layout, ten, tracking, vn, vn_date, when_label)
+from ui import (WEEKDAYS, DOWN, FLAT, GOLD, MUTED, PROC, TARGET_SHORT, UP, bucket_of, calibration, chart, inject_css,
+                freshness, live_prices, load, outlook, plotly_layout, ten, tracking, vn, vn_date, vn_now,
+                when_label)
 
 inject_css("""
 html {font-size: 19px;}
@@ -46,6 +47,12 @@ html {font-size: 19px;}
 .dot {width:22px; height:22px; border-radius:50%;}
 .stat {font-size:1.05rem; margin: 4px 0;}
 .stat b {font-size:1.25rem;}
+.stale-banner {background:#fde047; border:3px solid #ca8a04; border-radius:16px; padding:18px 22px; margin:10px 0 14px;
+               font-size:1.45rem; font-weight:700; color:#422006; line-height:1.4;}
+.fc-card.past {background:#f3f4f6; border-top:6px solid #9ca3af; color:#6b7280;}
+.fc-warn {font-size:0.88rem; background:#fef3c7; border:1px solid #f59e0b; border-radius:10px; padding:8px 10px;
+          margin:8px 0; color:#78350f; text-align:left;}
+.fc-live {font-size:0.88rem; color:#374151; margin-top:4px;}
 """)
 
 if not (PROC / "forecast.json").exists():
@@ -65,6 +72,12 @@ choice = st.segmented_control("Chọn loại vàng", list(TARGET_SHORT.values())
                               label_visibility="collapsed")
 tkey = {v: k for k, v in TARGET_SHORT.items()}.get(choice or TARGET_SHORT["sjc_sell"])
 T = fc["targets"][tkey]
+FR = freshness(fc, df)
+TODAY = vn_now().normalize()
+if FR["stale"] or FR["source_stale"].get(tkey):
+    stop_day = FR["last_observed"][tkey] if FR["source_stale"].get(tkey) and not FR["stale"] else FR["as_of"]
+    st.markdown(f"<div class='stale-banner'>⚠️ Dự đoán chưa được cập nhật – số liệu dừng ở {vn_date(stop_day)}. "
+                "Đừng dựa vào phần dự đoán bên dưới cho tới khi phần mềm cập nhật.</div>", unsafe_allow_html=True)
 buy_col = "sjc_buy" if tkey == "sjc_sell" else "ring_buy"
 
 # ------------------------------------------------------------------ giá hiện tại
@@ -87,6 +100,7 @@ chg_html = (f"<span style='color:{UP}'>▲ Tăng {vn(chg)} triệu</span>" if ch
             f"<span style='color:{DOWN}'>▼ Giảm {vn(-chg)} triệu</span>" if chg < -0.05 else
             f"<span style='color:{FLAT}'>● Không đổi</span>") + f" <span class='vg-muted'>so với {ref_txt}</span>"
 spread = sell - buy
+close_spread = close_sell - close_buy
 st.markdown(f"""
 <div class="hero">
   <div><div class="lbl">Giá BÁN ra (tiệm bán cho mình)</div>
@@ -102,7 +116,7 @@ st.markdown("## Giá vàng sắp tới sẽ thế nào?")
 st.markdown(f"<div class='vg-muted'>Tính từ giá chốt <b>{vn_date(close_day)}</b>: "
             f"<b>{vn(T['last_price'])}</b> triệu/lượng (giá bán ra).</div>", unsafe_allow_html=True)
 
-CONF = {"strong": ("●●●○", "Khá chắc chắn"), "lean": ("●●○○", "Hơi nghiêng"),
+CONF = {"strong": ("●●●○", "Nghiêng rõ về {dir}"), "lean": ("●●○○", "Hơi nghiêng về {dir}"),
         "unclear": ("●○○○", "Không rõ ràng"), "none": ("○○○○", "Chưa đoán được chiều")}
 
 
@@ -110,6 +124,11 @@ def short_card(h: str, r: dict) -> str:
     p0 = T["last_price"]
     when = when_label(r["target_date"])
     date = vn_date(r["target_date"])
+    if pd.Timestamp(r["target_date"]).normalize() < TODAY:
+        return f"""<div class="fc-card past">
+<div class="fc-when">{when}</div><div class="fc-date">{date}</div>
+<div class="fc-icon">⏳</div>
+<div class="fc-sub" style="font-size:1rem">Đã qua ngày dự đoán ({vn_date(r['target_date'], False)}) – chờ bản cập nhật mới</div></div>"""
     if h == "5":
         when = "Khoảng 1 tuần nữa"
     elif h == "21":
@@ -132,6 +151,16 @@ def short_card(h: str, r: dict) -> str:
     verdict = "Có thể TĂNG" if up_side else "Có thể GIẢM" if down_side else "Có thể đi ngang"
     level = "strong" if b.startswith("strong") else "lean" if (up_side or down_side) else "unclear"
     d = r["pred_price"] - p0
+    extra = ""
+    close_txt = "giá chốt gần nhất"
+    if up_side or down_side:
+        close_txt = f"giá chốt {WEEKDAYS[close_day.weekday()]} {close_day:%d/%m}"
+        if h == "1":
+            if use_live and pd.Timestamp(lp["ts"]).normalize() == pd.Timestamp(r["target_date"]).normalize():
+                extra += f"<div class='fc-live'>Giá đang niêm yết: <b>{vn(lp['price'])}</b> triệu</div>"
+            if abs(d) < close_spread:
+                extra += (f"<div class='fc-warn'>Mức thay đổi này ({vn(abs(d))} triệu) nhỏ hơn chênh lệch mua–bán "
+                          f"({vn(close_spread)} triệu): không đáng mua bán chỉ vì dự đoán này.</div>")
     move = f"{'tăng' if d > 0 else 'giảm'} khoảng {vn(abs(d))} triệu" if abs(d) >= 0.05 else "gần như không đổi"
     cal = calibration(tkey, int(h))
     hist = ""
@@ -144,9 +173,9 @@ def short_card(h: str, r: dict) -> str:
 <div class="fc-icon" style="color:{color}">{icon}</div>
 <div class="fc-verdict" style="color:{color}">{verdict}</div>
 <div class="fc-main">khoảng <b>{vn(r['pred_price'])}</b> triệu</div>
-<div class="fc-sub">{move} so với giá chốt gần nhất</div>
+<div class="fc-sub">{move} so với {close_txt}</div>{extra}
 <div class="fc-range">{rng}</div>
-<div class="fc-conf" style="color:{color}">{CONF[level][0]} {CONF[level][1]}</div>{hist}</div>"""
+<div class="fc-conf" style="color:{color}">{CONF[level][0]} {CONF[level][1].format(dir='tăng' if up_side else 'giảm')}</div>{hist}</div>"""
 
 
 def long_card(o: dict) -> str:
@@ -167,6 +196,11 @@ st.markdown(f"<div class='group'>Trong tháng tới</div><div class='fc-grid'>{'
             unsafe_allow_html=True)
 st.caption("“Nhiều khả năng trong khoảng” = khoảng mà trước đây giá thật rơi vào khoảng 8 trên 10 lần. "
            "Ngày tính theo ngày làm việc (Thứ Hai – Thứ Sáu).")
+st.markdown(f"""<div class="note">
+💡 <b>Chênh lệch giữa giá bán và giá mua hiện là {vn(spread)} triệu/lượng.</b><br>
+Nghĩa là nếu mua 1 lượng hôm nay rồi bán lại ngay, mình sẽ mất khoảng <b>{vn(spread)} triệu</b>.
+Giá cần tăng hơn mức này thì mới có lời – nên vàng hợp để giữ lâu hơn là mua bán theo từng ngày.
+</div>""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------ biểu đồ
 st.markdown("## Giá 3 tháng qua và dự đoán 1 tháng tới")
@@ -286,12 +320,7 @@ if len(tr):
 
 # ------------------------------------------------------------------ lời khuyên thực tế
 st.markdown("## Điều nên biết trước khi mua bán")
-st.markdown(f"""<div class="note">
-💡 <b>Chênh lệch giữa giá bán và giá mua hiện là {vn(spread)} triệu/lượng.</b><br>
-Nghĩa là nếu mua 1 lượng hôm nay rồi bán lại ngay, mình sẽ mất khoảng <b>{vn(spread)} triệu</b>.
-Giá cần tăng hơn mức này thì mới có lời – nên vàng hợp để giữ lâu hơn là mua bán theo từng ngày.
-</div>
-<div class="note">⚠️ Đây là <b>dự đoán để tham khảo</b>, dựa trên số liệu trong quá khứ – <b>không phải lời khuyên mua hay bán</b>.
+st.markdown("""<div class="note">⚠️ Đây là <b>dự đoán để tham khảo</b>, dựa trên số liệu trong quá khứ – <b>không phải lời khuyên mua hay bán</b>.
 Giá vàng có thể thay đổi bất ngờ vì tin tức trong nước và thế giới.</div>""", unsafe_allow_html=True)
 
 with st.expander("❓ Câu hỏi thường gặp"):
