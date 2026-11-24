@@ -4,7 +4,7 @@
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.50%2B-FF4B4B?logo=streamlit&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Dự báo giá **vàng miếng SJC** và **vàng nhẫn 9999** cho ngày mai, tuần sau, tháng sau và 3–5 tháng tới.
+Dự báo giá **vàng miếng SJC** và **vàng nhẫn 9999** (giá nhẫn trơn PNJ 999.9) cho ngày mai, tuần sau, tháng sau và 3–5 tháng tới.
 Hệ thống kết hợp mô hình chuỗi thời gian, học máy và một lớp tự học từ sai số. Kết quả được kiểm định
 **walk-forward** trung thực và có trang **đối chiếu lịch sử** dùng giá thời gian thực.
 
@@ -22,15 +22,16 @@ Mở **https://dnqh.github.io/vn-gold-forecast/** trên điện thoại rồi th
 - **Android (Chrome):** bấm **⋮** → **Thêm vào màn hình chính** (hoặc bấm nút **Cài vào điện thoại** trên trang).
 
 Dự đoán được cập nhật mỗi sáng khoảng 7 giờ (khi máy Mac chạy dự báo đang bật); giá đang niêm yết được làm mới mỗi 5 phút.
-Ứng dụng là trang web tĩnh trong thư mục `docs/` (GitHub Pages), dữ liệu xuất bằng `scripts/export_web.py`;
-`scripts/daily.sh` tự commit và push dữ liệu mới (đặt `AUTO_PUSH=0` trong file để tắt).
+Ứng dụng là trang web tĩnh trong thư mục `docs/` (GitHub Pages, chạy được khi mất mạng nhờ service worker), dữ liệu
+xuất bằng `scripts/export_web.py`. Sau khi sửa `docs/app.js`/`style.css`/`index.html`, tăng `VERSION` trong `docs/sw.js`
+để điện thoại chuyển sang bản mới ngay (nếu quên, điện thoại vẫn tự lấy bản mới ở lần mở kế tiếp).
 
 ## Hai phiên bản giao diện
 
 | 🏠 **Dễ hiểu**: cho người lớn tuổi, người không rành công nghệ | 📊 **Chuyên sâu**: cho người làm phân tích |
 |---|---|
 | <img src="docs/screenshots/family.jpg" width="420"> | <img src="docs/screenshots/pro.jpg" width="420"> |
-| Chữ to, nói bằng lời thường. Màu xanh = tăng, đỏ = giảm, xám = khó đoán. Có khoảng giá dễ hiểu, câu “những lần trước nói vậy thì đúng 8/10 lần”, chấm xanh/đỏ cho 30 lần đoán gần nhất, và lưu ý về chênh lệch mua – bán. Hiển thị tốt trên điện thoại. | Bảng dự báo từng mô hình, khoảng tin cậy 80/90%, Historical tracking price, SHAP, kiểm định Diebold–Mariano, giai đoạn khoá, triển vọng dài hạn và biến số cần theo dõi. |
+| Chữ to, nói bằng lời thường. Màu xanh = tăng, đỏ = giảm, xám = khó đoán. Có khoảng giá dễ hiểu, câu “những lần trước nói vậy thì đúng X/10 lần”, chấm xanh/đỏ cho 30 lần đoán gần nhất, và lưu ý về chênh lệch mua – bán. Hiển thị tốt trên điện thoại. | Bảng dự báo từng mô hình, khoảng tin cậy 80/90%, Historical tracking price, SHAP, kiểm định Diebold–Mariano, giai đoạn khoá, triển vọng dài hạn và biến số cần theo dõi. |
 
 <p align="center"><img src="docs/screenshots/family_mobile.jpg" width="260"><br><sub>Bản Dễ hiểu trên điện thoại</sub></p>
 
@@ -40,7 +41,9 @@ Dự đoán được cập nhật mỗi sáng khoảng 7 giờ (khi máy Mac ch�
   Với 1 tuần và 1 tháng, giao diện ghi **“Khó đoán”** và chỉ đưa khoảng giá.
 - **3 – 5 tháng: không dự đoán chiều.** Phần mềm công bố khoảng giá đối xứng, hiệu chỉnh từ sai số lịch sử,
   kèm độ phủ thực tế đã kiểm định.
-- **Xác suất được kiểm chứng.** Câu “những lần trước nói vậy thì đúng X/10 lần” được tính từ backtest walk-forward.
+- **Xác suất được kiểm chứng.** Câu “những lần trước nói vậy thì đúng X/10 lần” được tính từ backtest walk-forward;
+  phiên giá đứng yên được tính là *không đúng* (thận trọng). Khoảng “nhiều khả năng” là khoảng 80%: độ phủ thực tế
+  76–86% tùy kỳ hạn (xem `reports/02_model_evaluation.md`), nên giao diện ghi “khoảng 8 trên 10 lần”.
 
 ## Bắt đầu nhanh
 
@@ -52,19 +55,15 @@ pip install -r requirements.txt
 streamlit run app/dashboard.py          # mở giao diện, dùng sẵn dữ liệu trong data/processed
 python scripts/run_pipeline.py          # cập nhật dữ liệu + backtest + dự báo (~15 phút lần đầu)
 python scripts/run_pipeline.py --fast   # bản chạy hằng ngày: bỏ LSTM/ablation/EDA (~10 phút)
-python -m pytest tests -q               # kiểm tra chống rò rỉ dữ liệu
+python scripts/export_web.py            # xuất docs/data/latest.json cho ứng dụng điện thoại
+python -m pytest tests -q               # kiểm thử (chống rò rỉ dữ liệu, độ mới dữ liệu, logic chung Python/JS)
 ```
 
-### Đưa lên web để cả nhà xem bằng điện thoại
+### Bản Streamlit trên web (tùy chọn)
 
-1. Đưa repo lên GitHub.
-2. Vào [share.streamlit.io](https://share.streamlit.io), đăng nhập bằng GitHub, chọn **New app**, chọn repo và
-   file chính `app/dashboard.py`.
-3. Streamlit Cloud tự cài thư viện từ `app/requirements.txt` (bản rút gọn, không cần PyTorch) và cho một đường link
-   để gửi cho gia đình.
-
-Giao diện đọc dự báo từ `data/processed/`. Giá niêm yết hiện tại được lấy trực tiếp từ CafeF, tự làm mới mỗi 5 phút.
-Muốn dự báo trên web được cập nhật mỗi ngày, cần chạy pipeline rồi đẩy thư mục `data/processed/` lên repo.
+Cả nhà nên dùng **ứng dụng điện thoại** ở trên. Bản Streamlit có thể đưa lên [Streamlit Community Cloud](https://share.streamlit.io)
+(file chính `app/dashboard.py`, thư viện rút gọn `app/requirements.txt`), nhưng lưu ý: các file lớn trong `data/processed/`
+(backtest, dataset) chỉ được đẩy lên repo **mỗi tuần một lần**, nên phần đối chiếu lịch sử trên bản này có thể trễ vài ngày.
 
 ### Lịch chạy tự động mỗi sáng (macOS)
 
@@ -74,12 +73,20 @@ Muốn dự báo trên web được cập nhật mỗi ngày, cần chạy pipel
 ```
 
 `scripts/daily.sh` làm các việc: thu thập dữ liệu, chấm điểm dự báo cũ, chạy lại walk-forward và lớp tự học,
-ra dự báo mới, ghi log vào `logs/` và hiện thông báo macOS. Nếu máy đang ngủ lúc 7h, lịch sẽ chạy ngay khi máy thức dậy.
+ra dự báo mới, xuất dữ liệu cho ứng dụng điện thoại, commit + push, ghi log vào `logs/` và hiện thông báo macOS.
+Nếu máy đang ngủ lúc 7h, lịch sẽ chạy ngay khi máy thức dậy.
+
+- **Hằng ngày** chỉ commit file nhỏ: `docs/data/`, `data/processed/forecast.json`, `data/processed/predictions_log.csv`.
+- **Lần chạy thứ Bảy** (hoặc `FULL_PUSH=1 ./scripts/daily.sh --publish-only`) commit thêm `data/processed/`, `reports/`, `data/raw/`.
+  Các file này bị ghi lại gần như toàn bộ mỗi ngày (đo được 0,2–1,1 MB nén/commit); đẩy hằng ngày sẽ làm repo công khai phình thêm hàng trăm MB mỗi năm.
+- Trước khi push, script `fetch` + `rebase --autostash` lên `origin/main` (sửa README trên GitHub không làm hỏng lịch);
+  nếu xung đột thì huỷ rebase và báo lỗi trong thông báo macOS.
+- `AUTO_PUSH=0` (sửa trong file hoặc biến môi trường) để tắt commit/push; `./scripts/daily.sh --publish-only` để chỉ xuất + đăng.
 
 ## Kiến trúc
 
 ```
-Data Collection ─► Data Processing ─► Feature Engineering ─► ML Prediction Engine ─► forecast.json ─► Streamlit
+Data Collection ─► Data Processing ─► Feature Engineering ─► ML Prediction Engine ─► forecast.json ─► Streamlit / PWA
  (Yahoo, FRED,      (ghép nguồn, lưới    (~70 đặc trưng:       (Naive, MA, Linear,          │           ├─ Dễ hiểu
   CafeF,            ngày làm việc,        returns, premium,     ARIMA, RF, XGBoost,          │           └─ Chuyên sâu
   giavang.org)      chống leakage)        RSI, MACD, macro…)    LSTM) + lớp tự học           │
@@ -102,6 +109,8 @@ Data Collection ─► Data Processing ─► Feature Engineering ─► ML Pred
 | EDA | `src/vngold/eda.py` → `reports/01_eda.md` |
 | Điều phối | `src/vngold/pipeline.py`, `scripts/run_pipeline.py` |
 | Giao diện | `app/dashboard.py` (điều hướng), `app/views/family.py`, `app/views/pro.py`, `app/ui.py` |
+| Logic dùng chung (độ mới dữ liệu, tỷ lệ đúng) | `src/vngold/plain.py` |
+| Ứng dụng điện thoại (PWA) | `docs/` (`index.html`, `app.js`, `sw.js`), dữ liệu: `scripts/export_web.py` → `docs/data/latest.json` |
 
 ## Triển vọng dài hạn (3 và 5 tháng)
 
@@ -153,7 +162,7 @@ Vàng nhẫn có lịch sử từ 03/2024 (nhẫn PNJ 999.9 làm nguồn chính,
 - FRED daily trễ 2 ngày; CPI trễ 47 ngày, thất nghiệp trễ 40 ngày (xấp xỉ ngày công bố, không dùng ngày quan sát).
 - Walk-forward: tại mốc s chỉ học các hàng i có i + h ≤ s (nhãn đã biết). **Không chia ngẫu nhiên.**
 - Ngày thị trường trong nước nghỉ (giá chỉ được điền tiếp) không được dùng làm nhãn.
-- `tests/test_leakage.py` kiểm tra tự động các điều kiện trên (6 test).
+- `tests/test_leakage.py` kiểm tra tự động các điều kiện trên.
 
 ## Mô hình
 
