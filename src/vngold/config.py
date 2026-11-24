@@ -1,7 +1,10 @@
 """Cấu hình chung cho dự án Vietnam Gold Price Intelligence System."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_RAW = ROOT / "data" / "raw"
@@ -75,3 +78,20 @@ HTTP_HEADERS = {
         "(KHTML, like Gecko) Chrome/130 Safari/537.36"
     )
 }
+
+
+# ---------------------------------------------------------------- Thời gian VN
+VN_TZ = "Asia/Ho_Chi_Minh"
+
+
+def vn_now() -> pd.Timestamp:
+    """Giờ VN hiện tại (naive). Env VNGOLD_NOW='YYYY-MM-DD HH:MM' dùng để kiểm thử."""
+    env = os.environ.get("VNGOLD_NOW")
+    if env:
+        return pd.Timestamp(env)
+    return pd.Timestamp.now(tz=VN_TZ).tz_localize(None)
+
+
+def vn_today() -> pd.Timestamp:
+    """Ngày hiện tại theo giờ VN (00:00)."""
+    return vn_now().normalize()

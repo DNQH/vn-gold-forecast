@@ -12,7 +12,7 @@ from __future__ import annotations
 import pandas as pd
 
 from vngold.config import (DATA_PROCESSED, DATA_RAW, FRED_SERIES, ISSUE_TIME,
-                           OZ_PER_LUONG, WORLD_LAG_DAYS)
+                           OZ_PER_LUONG, WORLD_LAG_DAYS, vn_today)
 
 
 def _load_raw():
@@ -50,6 +50,16 @@ def merge_domestic(giavang: pd.DataFrame, cafef: pd.DataFrame,
     return out.sort_index()
 
 
+def drop_incomplete_days(df: pd.DataFrame, today=None) -> pd.DataFrame:
+    """Chỉ giữ các ngày đã khép lại: bỏ mọi hàng có ngày >= hôm nay (giờ VN).
+
+    Giá trong ngày hôm nay chưa chốt (và chưa có phiên Mỹ của ngày đó), nên không được
+    coi là giá đóng cửa. Chỉ lọc ở bước dựng dataset; cache thô giữ nguyên.
+    """
+    today = vn_today() if today is None else pd.Timestamp(today).normalize()
+    return df[df.index < today]
+
+
 def _asof_join(grid: pd.DatetimeIndex, df: pd.DataFrame, lag_days: int) -> pd.DataFrame:
     """Với mỗi ngày VN t, lấy bản ghi mới nhất có (ngày quan sát + lag) <= t."""
     src = df.dropna(how="all").copy()
@@ -66,6 +76,7 @@ def build_dataset(save: bool = True, issue_time: str = ISSUE_TIME) -> pd.DataFra
     yahoo, fred, cafef, ticks, pnj = _load_raw()
     dom = merge_domestic(giavang_daily(ticks), cafef, pnj_daily(pnj))
     dom = dom[dom["sjc_sell"].notna() | dom["ring_sell"].notna()]
+    dom = drop_incomplete_days(dom)
 
     # Lưới ngày làm việc T2-T6
     grid = pd.bdate_range(dom.index.min(), dom.index.max(), name="date")
@@ -102,6 +113,7 @@ def build_dataset(save: bool = True, issue_time: str = ISSUE_TIME) -> pd.DataFra
     df["ring_spread_pct"] = (df["ring_sell"] - df["ring_buy"]) / df["ring_sell"]
 
     df = df[df["sjc_sell"].notna() & df["xau_usd"].notna()]
+    df = drop_incomplete_days(df)
     if save:
         df.to_csv(DATA_PROCESSED / "dataset.csv")
     return df
