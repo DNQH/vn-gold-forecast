@@ -74,7 +74,14 @@ Cả nhà nên dùng **ứng dụng điện thoại** ở trên. Bản Streamlit
 
 `scripts/daily.sh` làm các việc: thu thập dữ liệu, chấm điểm dự báo cũ, chạy lại walk-forward và lớp tự học,
 ra dự báo mới, xuất dữ liệu cho ứng dụng điện thoại, commit + push, ghi log vào `logs/` và hiện thông báo macOS.
-Nếu máy đang ngủ lúc 7h, lịch sẽ chạy ngay khi máy thức dậy.
+
+**Tự chạy bù khi máy tắt/ngủ lúc 7h:** launchd chạy `daily.sh` lúc 7h00, khi đăng nhập/khởi động máy và mỗi 15 phút.
+Script tự kiểm tra: chỉ chạy vào thứ Ba – thứ Bảy, sau 7h00 giờ VN, và khi hôm nay chưa chạy thành công
+(dấu `logs/.last_success`). Vì vậy bật máy muộn hơn 7h vẫn được chạy bù ngay (thông báo có ghi "(chạy bù)").
+Tối đa 3 lần thử mỗi ngày (tránh báo lỗi liên tục khi mất mạng); có khoá chống chạy trùng; chờ mạng tối đa ~2 phút.
+Kiểm tra quyết định mà không chạy: `./scripts/daily.sh --check-only` (thử giờ giả: `VNGOLD_NOW='2026-11-26 08:00'`).
+`--force` bỏ qua kiểm tra. Tuỳ chọn: tự bật máy lúc 6h55 (tự chạy trong terminal, cần mật khẩu):
+`sudo pmset repeat wakeorpoweron TWRFS 06:55:00`
 
 - **Hằng ngày** chỉ commit file nhỏ: `docs/data/`, `data/processed/forecast.json`, `data/processed/predictions_log.csv`.
 - **Lần chạy thứ Bảy** (hoặc `FULL_PUSH=1 ./scripts/daily.sh --publish-only`) commit thêm `data/processed/`, `reports/`, `data/raw/`.
