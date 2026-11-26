@@ -8,3 +8,5 @@ models/*.pkl
 .claude/
 .streamlit/secrets.toml
 scripts/experiments/_cache/
+config/notify.env
+data/raw/yahoo_hourly.csv

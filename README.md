@@ -68,16 +68,17 @@ Cả nhà nên dùng **ứng dụng điện thoại** ở trên. Bản Streamlit
 ### Lịch chạy tự động mỗi sáng (macOS)
 
 ```bash
-./scripts/install_schedule.sh           # cài lịch 7h00 sáng thứ Ba – thứ Bảy (launchd)
+./scripts/install_schedule.sh           # cài 2 lịch launchd: 7h00 sáng T3–T7 (dự báo) và 19h00 T2–T6 (thông báo)
 ./scripts/install_schedule.sh remove    # gỡ lịch
 ```
 
 `scripts/daily.sh` làm các việc: thu thập dữ liệu, chấm điểm dự báo cũ, chạy lại walk-forward và lớp tự học,
-ra dự báo mới, xuất dữ liệu cho ứng dụng điện thoại, commit + push, ghi log vào `logs/` và hiện thông báo macOS.
+ra dự báo mới, xuất dữ liệu cho ứng dụng điện thoại, commit + push và ghi log vào `logs/`. Bản sáng chạy **im lặng**
+(không hiện thông báo); kết quả ghi vào `logs/.morning_status`, và nếu sáng nay lỗi thì thông báo 19h sẽ nhắc.
 
 **Tự chạy bù khi máy tắt/ngủ lúc 7h:** launchd chạy `daily.sh` lúc 7h00, khi đăng nhập/khởi động máy và mỗi 15 phút.
 Script tự kiểm tra: chỉ chạy vào thứ Ba – thứ Bảy, sau 7h00 giờ VN, và khi hôm nay chưa chạy thành công
-(dấu `logs/.last_success`). Vì vậy bật máy muộn hơn 7h vẫn được chạy bù ngay (thông báo có ghi "(chạy bù)").
+(dấu `logs/.last_success`). Vì vậy bật máy muộn hơn 7h vẫn được chạy bù ngay (log có ghi "chạy bù=1").
 Tối đa 3 lần thử mỗi ngày (tránh báo lỗi liên tục khi mất mạng); có khoá chống chạy trùng; chờ mạng tối đa ~2 phút.
 Kiểm tra quyết định mà không chạy: `./scripts/daily.sh --check-only` (thử giờ giả: `VNGOLD_NOW='2026-11-26 08:00'`).
 `--force` bỏ qua kiểm tra. Tuỳ chọn: tự bật máy lúc 6h55 (tự chạy trong terminal, cần mật khẩu):
@@ -87,8 +88,69 @@ Kiểm tra quyết định mà không chạy: `./scripts/daily.sh --check-only` 
 - **Lần chạy thứ Bảy** (hoặc `FULL_PUSH=1 ./scripts/daily.sh --publish-only`) commit thêm `data/processed/`, `reports/`, `data/raw/`.
   Các file này bị ghi lại gần như toàn bộ mỗi ngày (đo được 0,2–1,1 MB nén/commit); đẩy hằng ngày sẽ làm repo công khai phình thêm hàng trăm MB mỗi năm.
 - Trước khi push, script `fetch` + `rebase --autostash` lên `origin/main` (sửa README trên GitHub không làm hỏng lịch);
-  nếu xung đột thì huỷ rebase và báo lỗi trong thông báo macOS.
+  nếu xung đột thì huỷ rebase, ghi lỗi vào log và `logs/.morning_status` (thông báo 19h sẽ nhắc).
 - `AUTO_PUSH=0` (sửa trong file hoặc biến môi trường) để tắt commit/push; `./scripts/daily.sh --publish-only` để chỉ xuất + đăng.
+
+## 🔔 Thông báo 19h
+
+Mỗi tối **thứ Hai – thứ Sáu lúc 19h** (giờ Việt Nam), máy Mac gửi **một** thông báo, cùng lúc tới **điện thoại**
+(qua ứng dụng miễn phí [ntfy](https://ntfy.sh)) và **máy Mac**. Bấm vào thông báo sẽ mở ứng dụng giá vàng. Nội dung:
+
+1. **Giá hôm nay** của vàng miếng SJC và nhẫn 9999 (PNJ): giá bán, giá mua (triệu đồng/lượng) và tăng/giảm so với hôm qua
+   (thứ Hai thì so với thứ Sáu).
+2. **Dự báo sáng nay cho hôm nay có đúng chiều không** (đúng / sai / giá đứng yên) – chỉ khi sáng nay phần mềm có nói chiều.
+3. **Dự báo sơ bộ cho phiên kế tiếp** (tối thứ Sáu là cho thứ Hai): mức độ (“Nghiêng rõ về tăng”, “Hơi nghiêng về giảm”,
+   “Khó đoán”…) và khoảng giá nhiều khả năng.
+
+Ví dụ:
+
+```
+Giá vàng tối Thứ Năm 26/11
+Giá hôm nay (triệu đồng/lượng, so với hôm qua):
+• SJC miếng: bán 134,5 – mua 129,5 (▲ 0,4 · +0,3%)
+• Nhẫn 9999 PNJ: bán 132,5 – mua 127,0 (▲ 1,0 · +0,8%)
+Sáng nay đoán: SJC giảm → sai · Nhẫn giảm → sai
+Dự báo sơ bộ cho Thứ Sáu 27/11:
+• SJC: Khó đoán, khoảng 133,0 – 136,2
+• Nhẫn: Khó đoán, khoảng 130,8 – 134,2
+Khó đoán: buổi tối chưa có giá Mỹ đêm nay, phần mềm chưa đoán tăng/giảm tốt hơn việc coi như giá giữ nguyên.
+Đây là bản sơ bộ. Bản chính thức cập nhật lúc 7h sáng trên ứng dụng.
+```
+
+**Sơ bộ và chính thức khác nhau thế nào?** Bản **chính thức** chạy lúc 7h sáng, khi phiên giao dịch ở Mỹ đêm trước đã đóng
+cửa – đây là nguồn lợi thế chính của phần mềm. Lúc 19h phiên Mỹ chưa diễn ra, nên bản **sơ bộ** dùng các mô hình của bản
+sáng với giá thế giới *đang chạy* lúc 19h. Kiểm định walk-forward trên ~2 năm dữ liệu theo giờ
+([`reports/04_evening_preliminary.md`](reports/04_evening_preliminary.md)) cho thấy bản sơ bộ **chưa vượt** cách “coi như giá
+giữ nguyên” một cách có ý nghĩa thống kê, nên hiện thông báo ghi **“Khó đoán”** và chỉ đưa khoảng giá. Phần mềm tự kiểm định
+lại mỗi tuần (`scripts/eval_evening.py`); chỉ khi có lợi thế thật thì thông báo mới nói chiều. Hãy xem bản chính thức trên
+ứng dụng sau 7h sáng.
+
+**Cài trên điện thoại (cả bố mẹ dùng chung được):**
+
+1. Cài ứng dụng **ntfy** (App Store trên iPhone, Google Play trên Android) – miễn phí, không cần tài khoản.
+2. Mở ntfy → bấm **+** (Subscribe to topic / Đăng ký chủ đề).
+3. Nhập **tên chủ đề** (topic) – xem trong file `config/notify.env` trên máy Mac, dòng `NTFY_TOPIC=...` – giữ máy chủ
+   mặc định **ntfy.sh** → **Subscribe**. Mỗi điện thoại trong nhà làm giống hệt nhau với cùng một tên chủ đề.
+4. iPhone: cho phép ntfy gửi thông báo khi được hỏi.
+
+**Tên chủ đề là “chìa khoá”:** ai biết tên đều đọc được tin, nên tên được tạo ngẫu nhiên khó đoán và **chỉ** lưu trong
+`config/notify.env` (đã đưa vào `.gitignore`, không bao giờ lên GitHub; mẫu: `config/notify.env.example`). Tin nhắn chỉ có
+giá vàng, không có thông tin cá nhân. **Đổi tên chủ đề:** tạo tên mới bằng
+`python3 -c "import secrets; print('vngold-' + secrets.token_hex(10))"`, sửa dòng `NTFY_TOPIC=` trong `config/notify.env`,
+rồi đăng ký lại tên mới trên từng điện thoại (xoá chủ đề cũ).
+
+**Lịch và gửi bù:** `scripts/evening.sh` (launchd `com.vngold.evening`, cài bằng `./scripts/install_schedule.sh`) chạy lúc
+19h00, khi đăng nhập/khởi động máy và mỗi 15 phút. Máy Mac phải **bật** (không ngủ) thì mới gửi được; nếu lúc 19h máy tắt,
+khi bật lại trong cùng buổi tối tin sẽ được **gửi bù** (tiêu đề có “(gửi bù)”). Qua nửa đêm thì không gửi bù tin hôm trước.
+Mỗi ngày chỉ gửi một lần (dấu `logs/.evening_last_success`), tối đa 3 lần thử, có khoá chống chạy trùng, chờ mạng tối đa
+~2 phút, và đợi nếu bản sáng đang chạy bù. Một kênh lỗi thì kênh kia vẫn được gửi; kết quả ghi vào `logs/evening_<ngày>.log`.
+
+```bash
+./scripts/evening.sh --check-only          # xem quyết định của guard (giờ giả: VNGOLD_NOW='2026-11-26 19:05')
+./scripts/evening.sh --dry-run --force     # in nội dung tin nhắn, KHÔNG gửi
+./scripts/evening.sh --force               # gửi ngay (trước 19h: tiêu đề "(gửi thử)", tin 19h vẫn gửi như thường)
+python scripts/eval_evening.py             # kiểm định lại bản sơ bộ (~2 phút; tự chạy mỗi tuần sau khi gửi)
+```
 
 ## Kiến trúc
 
@@ -118,6 +180,8 @@ Data Collection ─► Data Processing ─► Feature Engineering ─► ML Pred
 | Giao diện | `app/dashboard.py` (điều hướng), `app/views/family.py`, `app/views/pro.py`, `app/ui.py` |
 | Logic dùng chung (độ mới dữ liệu, tỷ lệ đúng) | `src/vngold/plain.py` |
 | Ứng dụng điện thoại (PWA) | `docs/` (`index.html`, `app.js`, `sw.js`), dữ liệu: `scripts/export_web.py` → `docs/data/latest.json` |
+| Dự báo sơ bộ 19h + kiểm định | `src/vngold/evening.py`, `scripts/eval_evening.py` → `reports/04_evening_preliminary.md` |
+| Thông báo 19h (ntfy + macOS) | `src/vngold/notify.py`, `scripts/evening.py`, `scripts/evening.sh`, `scripts/com.vngold.evening.plist` |
 
 ## Triển vọng dài hạn (3 và 5 tháng)
 

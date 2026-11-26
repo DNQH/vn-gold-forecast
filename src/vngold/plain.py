@@ -131,3 +131,32 @@ def plain_reason(f: str, v, c: float) -> str | None:
     if f.startswith("us10y") or f.startswith("real_rate") or f == "fed_funds":
         return "Lãi suất ở Mỹ"
     return None
+
+
+# ------------------------------------------------------------------ lời lẽ chiều tăng/giảm (giống CONF/verdict trong docs/app.js)
+WEEKDAYS_VN = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
+CONF_LABELS = {"strong": "Nghiêng rõ về {dir}", "lean": "Hơi nghiêng về {dir}", "unclear": "Không rõ ràng"}
+NO_EDGE_LABEL = "Khó đoán"
+
+
+def said_direction(bucket) -> int:
+    """Chiều mà giao diện đã nói với nhóm xác suất `bucket`: +1 tăng, -1 giảm, 0 không nói chiều."""
+    b = str(bucket)
+    return 1 if b in ("strong_up", "lean_up") else -1 if b in ("strong_down", "lean_down") else 0
+
+
+def direction_label(bucket, has_edge: bool = True) -> str:
+    """'Nghiêng rõ về tăng' / 'Hơi nghiêng về giảm' / 'Không rõ ràng'; không có lợi thế -> 'Khó đoán'."""
+    if not has_edge or bucket is None:
+        return NO_EDGE_LABEL
+    d = said_direction(bucket)
+    if d == 0:
+        return CONF_LABELS["unclear"]
+    level = "strong" if str(bucket).startswith("strong") else "lean"
+    return CONF_LABELS[level].format(dir="tăng" if d > 0 else "giảm")
+
+
+def vn_day(d, weekday: bool = True) -> str:
+    """Timestamp -> 'Thứ Sáu 27/11' (hoặc '27/11')."""
+    d = pd.Timestamp(d)
+    return (f"{WEEKDAYS_VN[d.weekday()]} " if weekday else "") + f"{d.day:02d}/{d.month:02d}"

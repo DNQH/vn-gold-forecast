@@ -70,6 +70,28 @@ def _asof_join(grid: pd.DatetimeIndex, df: pd.DataFrame, lag_days: int) -> pd.Da
     return m.set_index("date").drop(columns="avail")
 
 
+def macro_frame(grid: pd.DatetimeIndex, fred: pd.DataFrame) -> pd.DataFrame:
+    """FRED theo lưới ngày VN: monthly -> tính YoY trước khi dời theo ngày công bố (độ trễ >= 2 ngày)."""
+    parts = []
+    for sid, (name, lag) in FRED_SERIES.items():
+        s = fred[[name]].dropna()
+        if name == "cpi_us":
+            s = s.assign(cpi_yoy=s["cpi_us"].pct_change(12) * 100)[["cpi_yoy"]]
+        parts.append(_asof_join(grid, s, lag_days=max(lag, 2)))
+    return pd.concat(parts, axis=1)
+
+
+def add_derived(df: pd.DataFrame) -> pd.DataFrame:
+    """Các cột suy ra từ giá trong nước + giá thế giới (dùng chung cho dataset và dự báo sơ bộ buổi tối)."""
+    df["world_vnd"] = df["xau_usd"] * df["usd_vnd"] * OZ_PER_LUONG / 1e6  # triệu VND/lượng
+    df["premium"] = df["sjc_sell"] - df["world_vnd"]
+    df["premium_pct"] = df["sjc_sell"] / df["world_vnd"] - 1
+    df["ring_premium_pct"] = df["ring_sell"] / df["world_vnd"] - 1
+    df["sjc_spread_pct"] = (df["sjc_sell"] - df["sjc_buy"]) / df["sjc_sell"]
+    df["ring_spread_pct"] = (df["ring_sell"] - df["ring_buy"]) / df["ring_sell"]
+    return df
+
+
 def build_dataset(save: bool = True, issue_time: str = ISSUE_TIME) -> pd.DataFrame:
     from vngold.data.collect import giavang_daily, pnj_daily
 
@@ -95,22 +117,8 @@ def build_dataset(save: bool = True, issue_time: str = ISSUE_TIME) -> pd.DataFra
     #   evening: hàng t (dự báo phát hành chiều t) chỉ dùng phiên Mỹ ngày t-1
     world = _asof_join(grid, yahoo, lag_days=WORLD_LAG_DAYS[issue_time])
 
-    # FRED: monthly -> tính YoY trước khi dời theo ngày công bố
-    macro_parts = []
-    for sid, (name, lag) in FRED_SERIES.items():
-        s = fred[[name]].dropna()
-        if name == "cpi_us":
-            s = s.assign(cpi_yoy=s["cpi_us"].pct_change(12) * 100)[["cpi_yoy"]]
-        macro_parts.append(_asof_join(grid, s, lag_days=max(lag, 2)))
-    macro = pd.concat(macro_parts, axis=1)
-
-    df = dom_g.join(world).join(macro)
-    df["world_vnd"] = df["xau_usd"] * df["usd_vnd"] * OZ_PER_LUONG / 1e6  # triệu VND/lượng
-    df["premium"] = df["sjc_sell"] - df["world_vnd"]
-    df["premium_pct"] = df["sjc_sell"] / df["world_vnd"] - 1
-    df["ring_premium_pct"] = df["ring_sell"] / df["world_vnd"] - 1
-    df["sjc_spread_pct"] = (df["sjc_sell"] - df["sjc_buy"]) / df["sjc_sell"]
-    df["ring_spread_pct"] = (df["ring_sell"] - df["ring_buy"]) / df["ring_sell"]
+    macro = macro_frame(grid, fred)
+    df = add_derived(dom_g.join(world).join(macro))
 
     df = df[df["sjc_sell"].notna() & df["xau_usd"].notna()]
     df = drop_incomplete_days(df)

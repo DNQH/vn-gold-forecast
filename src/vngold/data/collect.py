@@ -124,6 +124,35 @@ def fetch_live_prices(timeout: int = 15) -> dict:
     return out
 
 
+def fetch_recent_domestic(timeout: int = 15) -> dict:
+    """Giá SJC và nhẫn PNJ 999.9 theo ngày trong ~1 tuần gần nhất (CafeF): bản ghi muộn nhất mỗi ngày.
+
+    Trả về {"sjc_sell": DataFrame[date -> sell, buy, ts], "ring_sell": ...}; mục nào lỗi thì bỏ qua.
+    Bản ghi của ngày hôm nay là giá đang niêm yết (CafeF cập nhật liên tục, chốt ~23h59)."""
+    out = {}
+    try:
+        d = _cafef_json_t("https://cafef.vn/du-lieu/Ajax/ajaxgoldpricehistory.ashx?index=1W", timeout)
+        s = pd.DataFrame(d["goldPriceWorldHistories"])
+        s["ts"] = pd.to_datetime(s["createdAt"], utc=True).dt.tz_convert(VN_TZ).dt.tz_localize(None)
+        s = s.rename(columns={"sellPrice": "sell", "buyPrice": "buy"})[["ts", "sell", "buy"]]
+        out["sjc_sell"] = s
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        d = _cafef_json_t("https://cafef.vn/du-lieu/Ajax/AjaxGoldPriceRing.ashx?time=1w&zone=11", timeout)
+        r = pd.DataFrame(d["goldPriceWorldHistories"])
+        r["ts"] = pd.to_datetime(r["lastUpdated"])
+        r["sell"], r["buy"] = r["sellPrice"] / 100.0, r["buyPrice"] / 100.0
+        out["ring_sell"] = r[["ts", "sell", "buy"]]
+    except Exception:  # noqa: BLE001
+        pass
+    for k, v in list(out.items()):
+        v = v.sort_values("ts").astype({"sell": float, "buy": float})
+        v["date"] = v["ts"].dt.normalize()
+        out[k] = v.groupby("date")[["sell", "buy", "ts"]].last()
+    return out
+
+
 def _cafef_json_t(url: str, timeout: int) -> dict:
     r = requests.get(url, headers=HTTP_HEADERS, timeout=timeout)
     r.raise_for_status()

@@ -2,6 +2,8 @@
 # Chạy dự báo hằng ngày (launchd: 7h sáng T3–T7 giờ VN, + khi đăng nhập/khởi động + mỗi 15 phút; guard bên dưới tránh chạy trùng/chạy sớm).
 # Thu thập dữ liệu mới -> chấm điểm dự báo cũ -> backtest/tự học -> dự báo mới.
 # Tự động đăng dữ liệu mới lên GitHub Pages (ứng dụng điện thoại) sau mỗi lần chạy thành công.
+# Bản sáng chạy IM LẶNG (không hiện thông báo): kết quả ghi vào logs/ và logs/.morning_status
+# ("YYYY-MM-DD ok|fail ..."); thông báo 19h (scripts/evening.sh) sẽ nhắc nếu sáng nay bị lỗi.
 # Đặt AUTO_PUSH=0 để TẮT (chỉ xuất docs/data/latest.json trên máy, không commit/push). Hoặc chạy: AUTO_PUSH=0 ./scripts/daily.sh
 #
 # Phạm vi commit tự động (để repo công khai không phình to):
@@ -56,6 +58,7 @@ if [ "$1" != "--force" ] && [ "$1" != "--publish-only" ]; then
   done
   if [ "$NET" != "1" ]; then
     echo "=== $(date '+%Y-%m-%d %H:%M:%S') không có mạng sau ~2 phút (lần thử $((ATT+1))/3)" >> "$LOG"
+    echo "$TODAY fail network" > logs/.morning_status
     exit 1
   fi
 fi
@@ -112,27 +115,15 @@ fi
   .venv/bin/python -u scripts/run_pipeline.py --fast
   STATUS=$?
   echo "=== $(date '+%Y-%m-%d %H:%M:%S') kết thúc, mã thoát $STATUS"
-  if [ $STATUS -eq 0 ]; then echo "$TODAY" > logs/.last_success; publish; fi
+  if [ $STATUS -eq 0 ]; then
+    echo "$TODAY" > logs/.last_success
+    if publish; then echo "$TODAY ok" > logs/.morning_status; else echo "$TODAY ok push_fail$PUSH_NOTE" > logs/.morning_status; fi
+  else
+    echo "$TODAY fail pipeline_exit_$STATUS" > logs/.morning_status
+  fi
 } >> "$LOG" 2>&1
 
-# Thông báo macOS với dự báo 1 ngày
-MSG=$(.venv/bin/python - <<'PY' 2>/dev/null
-import json
-f = json.load(open("data/processed/forecast.json", encoding="utf-8"))
-r = f["targets"]["sjc_sell"]["horizons"]["1"]
-p0 = f["targets"]["sjc_sell"]["last_price"]
-head = (f"{r['pred_price']:.2f} tr ({r['pred_return_pct']:+.2f}%)" if r.get("has_edge", True)
-        else "mô hình không vượt Naive")
-print(f"SJC chốt phiên {r['target_date']}: {head}, "
-      f"khoảng 90% {r['lo90']:.1f}–{r['hi90']:.1f}, P(tăng) {r['p_up']*100:.0f}%. Giá hiện tại: {p0:.2f}")
-PY
-)
-[ "$CATCHUP" = "1" ] && PUSH_NOTE="$PUSH_NOTE (chạy bù)"
-if [ $STATUS -eq 0 ] && [ -n "$MSG" ]; then
-  osascript -e "display notification \"$MSG$PUSH_NOTE\" with title \"Dự báo vàng Việt Nam\""
-else
-  osascript -e "display notification \"Lỗi khi chạy dự báo – xem $LOG\" with title \"Dự báo vàng Việt Nam\""
-fi
+# Không hiện thông báo ở đây nữa: mọi thông tin (kể cả lỗi sáng nay) được gửi một lần lúc 19h (scripts/evening.sh).
 # giữ log 60 ngày gần nhất
 ls -1t logs/daily_*.log 2>/dev/null | tail -n +61 | xargs -I{} rm -f "{}"
 exit $STATUS
