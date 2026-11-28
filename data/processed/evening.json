@@ -1,0 +1,55 @@
+{
+ "generated_at": "2026-11-27T20:51:44",
+ "ctx": {
+  "day": "2026-11-27",
+  "prev_day": "2026-11-26",
+  "next_day": "2026-11-30",
+  "catchup": true,
+  "test": false,
+  "notes": [
+   "sáng nay phần mềm cập nhật bị lỗi, ứng dụng có thể chưa có dự báo mới."
+  ],
+  "prelim_reason": "số liệu sáng nay chưa cập nhật",
+  "items": [
+   {
+    "key": "sjc_sell",
+    "name": "SJC miếng",
+    "sell": 136.0,
+    "buy": 131.0,
+    "prev": 134.5,
+    "stale": false,
+    "morning": null,
+    "prelim": null
+   },
+   {
+    "key": "ring_sell",
+    "name": "Nhẫn 9999 PNJ",
+    "sell": 133.0,
+    "buy": 126.8,
+    "prev": 132.5,
+    "stale": false,
+    "morning": null,
+    "prelim": null
+   }
+  ]
+ },
+ "detail": {
+  "now": "2026-11-27 20:51",
+  "targets": {}
+ },
+ "message": {
+  "title": "Giá vàng tối Thứ Sáu 27/11 (gửi bù)",
+  "body": "Giá hôm nay (triệu đồng/lượng, so với hôm qua):\n• SJC miếng: bán 136,0 – mua 131,0 (▲ 1,5 · +1,1%)\n• Nhẫn 9999 PNJ: bán 133,0 – mua 126,8 (▲ 0,5 · +0,4%)\nDự báo sơ bộ cho Thứ Hai 30/11: chưa có (số liệu sáng nay chưa cập nhật).\nĐây là bản sơ bộ. Bản chính thức cập nhật lúc 7h sáng trên ứng dụng.\nLưu ý: sáng nay phần mềm cập nhật bị lỗi, ứng dụng có thể chưa có dự báo mới.",
+  "short": "SJC 136,0 (▲1,5) · Nhẫn 133,0 (▲0,5). Chính thức: 7h sáng. Lưu ý: sáng nay phần mềm cập nhật bị lỗi, ứng dụng có thể chưa có dự báo mới."
+ },
+ "sent": {
+  "ntfy": [
+   true,
+   "HTTP 200"
+  ],
+  "macos": [
+   true,
+   "ok"
+  ]
+ }
+}
